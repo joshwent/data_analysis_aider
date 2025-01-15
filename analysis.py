@@ -25,55 +25,49 @@ data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
 print(data.columns)
 
 # Create filter widgets with checkboxes
-operator_select = pn.widgets.CheckBoxGroup(
-    name='Select Operators',
-    options=sorted(list(data['Operator'].unique())),
-    value=[],
-    inline=False,
-    width=220,
-    styles={
-        'background': 'var(--bg-card)',
-        'padding': '12px',
-        'border-radius': '8px',
-        'margin-bottom': '8px'
-    }
-)
+def create_checkbox_group(name, options, width=220):
+    select_all = pn.widgets.Checkbox(name='Select All', value=False, width=width)
+    checkbox_group = pn.widgets.CheckBoxGroup(
+        name=name,
+        options=sorted(options),
+        value=[],
+        inline=False,
+        width=width,
+        styles={
+            'background': 'var(--bg-card)',
+            'padding': '12px',
+            'border-radius': '8px',
+            'margin-bottom': '8px'
+        }
+    )
+    
+    def update_checkboxes(event):
+        if event.new:
+            checkbox_group.value = checkbox_group.options
+        else:
+            checkbox_group.value = []
+    
+    select_all.param.watch(update_checkboxes, 'value')
+    
+    return pn.Column(select_all, checkbox_group)
 
-game_type_select = pn.widgets.CheckBoxGroup(
-    name='Select Game Types',
-    options=sorted(list(data['Game Type'].unique())),
-    value=[],
-    inline=False,
-    width=220,
-    styles={
-        'background': 'var(--bg-card)',
-        'padding': '12px',
-        'border-radius': '8px',
-        'margin-bottom': '8px'
-    }
-)
+operator_group = create_checkbox_group('Select Operators', list(data['Operator'].unique()))
+operator_select = operator_group[1]
 
-map_select = pn.widgets.CheckBoxGroup(
-    name='Select Maps',
-    options=sorted(list(data['Map'].unique())),
-    value=[],
-    inline=False,
-    width=220,
-    styles={
-        'background': 'var(--bg-card)',
-        'padding': '12px',
-        'border-radius': '8px',
-        'margin-bottom': '8px'
-    }
-)
+game_type_group = create_checkbox_group('Select Game Types', list(data['Game Type'].unique()))
+game_type_select = game_type_group[1]
+
+map_group = create_checkbox_group('Select Maps', list(data['Map'].unique()))
+map_select = map_group[1]
 
 # Create filter accordion
 filter_accordion = pn.Accordion(
-    ('Operators', pn.Column(operator_select)),
-    ('Game Types', pn.Column(game_type_select)),
-    ('Maps', pn.Column(map_select)),
+    ('Operators', operator_group),
+    ('Game Types', game_type_group),
+    ('Maps', map_group),
     width=250,
-    active=[0]  # Open first panel by default
+    active=[0],  # Open first panel by default
+    sizing_mode='fixed'
 )
 
 
