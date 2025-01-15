@@ -103,9 +103,9 @@ def get_filtered_data(operators, game_types, maps, date_range):
     # Add debug print statements
     print(f"Filtering stats:")
     print(f"Total rows before filter: {len(data)}")
-    print(f"Operator filter: {operator}")
-    print(f"Game Type filter: {game_type}")
-    print(f"Map filter: {map_name}")
+    print(f"Operators filter: {operators}")
+    print(f"Game Types filter: {game_types}")
+    print(f"Maps filter: {maps}")
     print(f"Date range: {start_time} to {end_time}")
     print(f"Remaining rows after filter: {len(filtered)}")
     
