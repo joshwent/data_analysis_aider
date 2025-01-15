@@ -139,23 +139,21 @@ def create_plots(operator, game_type, map_name, date_range, kd_range):
     )
     
     # Map K/D performance
-    map_stats = filtered_data.groupby('Map').apply(
-        lambda x: pd.Series({
-            'K/D': (x['Kills'].sum() / x['Deaths'].sum()).round(2)
-        })
-    ).reset_index()
+    map_stats = (filtered_data.groupby('Map')
+                .agg({'Kills': 'sum', 'Deaths': 'sum'})
+                .assign(KD=lambda x: (x['Kills'] / x['Deaths']).round(2))
+                .reset_index()
+                .sort_values('KD', ascending=True))
     
-    map_performance = map_stats.sort_values('K/D', ascending=True).hvplot.bar(
-        'K/D',
+    map_performance = map_stats.hvplot.bar(
+        y='Map',
+        x='KD',
         title="K/D Ratio by Map",
         height=400,
         width=800,
         color='purple',
         xlabel='K/D Ratio',
         ylabel='Map'
-    ).opts(
-        invert_yaxis=True,
-        xrotation=45
     )
     
     # Combine plots in a grid layout
