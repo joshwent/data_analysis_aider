@@ -125,8 +125,7 @@ def create_stats(operator, game_type):
     avg_score = filtered_data['Score'].mean().round(0)
     
     # Calculate streaks
-    kill_streak = filtered_data['Kill Streak'].max()
-    death_streak = filtered_data['Death Streak'].max()
+    kill_streak = filtered_data['Longest Streak'].max()
     
     # Calculate time-based stats
     total_time = filtered_data['Time Played'].sum()
@@ -142,7 +141,6 @@ def create_stats(operator, game_type):
             pn.pane.Markdown(f"**Average Score:** {avg_score}"),
             pn.pane.Markdown("## Streaks"),
             pn.pane.Markdown(f"**Best Kill Streak:** {kill_streak}"),
-            pn.pane.Markdown(f"**Worst Death Streak:** {death_streak}"),
             pn.pane.Markdown("## Efficiency"),
             pn.pane.Markdown(f"**Kills per Minute:** {kills_per_min}"),
             pn.pane.Markdown(f"**Total Time Played:** {total_time} minutes"),
