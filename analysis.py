@@ -18,10 +18,10 @@ print(data.head())
 import datetime
 import zoneinfo
 
-# Convert UTC timestamps to local time
-data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp'])
+# Convert UTC timestamps to local time and ensure proper timezone handling
+data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp']).dt.tz_localize('UTC')
 local_tz = datetime.datetime.now().astimezone().tzinfo
-data['Local Time'] = data['UTC Timestamp'].dt.tz_localize('UTC').dt.tz_convert(local_tz)
+data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
 
 print(data.columns)
 
@@ -46,9 +46,10 @@ map_select = pn.widgets.Select(
 
 date_range = pn.widgets.DateRangeSlider(
     name='Date Range',
-    start=data['UTC Timestamp'].min(),
-    end=data['UTC Timestamp'].max(),
-    value=(data['UTC Timestamp'].min(), data['UTC Timestamp'].max())
+    start=data['Local Time'].min().replace(tzinfo=None),
+    end=data['Local Time'].max().replace(tzinfo=None),
+    value=(data['Local Time'].min().replace(tzinfo=None), 
+           data['Local Time'].max().replace(tzinfo=None))
 )
 
 # Create plots using hvPlot
@@ -63,14 +64,13 @@ def get_filtered_data(operator, game_type, map_name, date_range):
     if map_name != 'All':
         filtered = filtered[filtered['Map'] == map_name]
     
-    # Date range filter
-    # Convert date range to UTC for filtering
-    start_time = pd.Timestamp(date_range[0]).tz_localize(local_tz).tz_convert('UTC')
-    end_time = pd.Timestamp(date_range[1]).tz_localize(local_tz).tz_convert('UTC')
+    # Date range filter with proper timezone handling
+    start_time = pd.Timestamp(date_range[0]).tz_localize(local_tz)
+    end_time = pd.Timestamp(date_range[1]).tz_localize(local_tz)
     
     filtered = filtered[
-        (filtered['UTC Timestamp'] >= start_time) &
-        (filtered['UTC Timestamp'] <= end_time)
+        (filtered['Local Time'] >= start_time) &
+        (filtered['Local Time'] <= end_time)
     ]
 
     return filtered
