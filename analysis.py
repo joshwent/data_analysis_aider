@@ -126,8 +126,6 @@ def create_plots(operator, game_type, map_name, date_range, kd_range):
         color='orange',
         xlabel='Accuracy %',
         ylabel='Number of Matches'
-    ).opts(
-        xlabel_position='bottom'
     )
     
     # Performance metrics over time
