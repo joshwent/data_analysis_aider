@@ -15,7 +15,9 @@ data = pd.read_csv(csv_file)
 # Inspect the data
 print(data.head())
 
+# Convert UTC timestamps to local time
 data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp'])
+data['Local Time'] = data['UTC Timestamp'].dt.tz_localize('UTC').dt.tz_convert('local')
 
 print(data.columns)
 
@@ -58,9 +60,13 @@ def get_filtered_data(operator, game_type, map_name, date_range):
         filtered = filtered[filtered['Map'] == map_name]
     
     # Date range filter
+    # Convert date range to UTC for filtering
+    start_time = pd.Timestamp(date_range[0]).tz_localize('local').tz_convert('UTC')
+    end_time = pd.Timestamp(date_range[1]).tz_localize('local').tz_convert('UTC')
+    
     filtered = filtered[
-        (filtered['UTC Timestamp'] >= pd.Timestamp(date_range[0])) &
-        (filtered['UTC Timestamp'] <= pd.Timestamp(date_range[1]))
+        (filtered['UTC Timestamp'] >= start_time) &
+        (filtered['UTC Timestamp'] <= end_time)
     ]
 
     return filtered
@@ -77,13 +83,14 @@ def create_plots(operator, game_type, map_name, date_range):
         axis=1
     ).round(2)
     # Extract time-based features
-    filtered_data['Hour'] = filtered_data['UTC Timestamp'].dt.hour
-    filtered_data['Day'] = filtered_data['UTC Timestamp'].dt.day_name()
+    # Extract time-based features using local time
+    filtered_data['Hour'] = filtered_data['Local Time'].dt.hour
+    filtered_data['Day'] = filtered_data['Local Time'].dt.day_name()
     
     # Skill progression over time
     skill_plot = px.line(
         filtered_data,
-        x='UTC Timestamp',
+        x='Local Time',
         y='Skill',
         title="Skill Progression Over Time",
         height=300
@@ -129,7 +136,7 @@ def create_plots(operator, game_type, map_name, date_range):
     # Performance metrics over time
     metrics_plot = px.line(
         filtered_data,
-        x='UTC Timestamp',
+        x='Local Time',
         y=['KD_Ratio', 'Accuracy'],
         title="Performance Metrics Over Time",
         height=300
