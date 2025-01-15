@@ -24,18 +24,30 @@ data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
 
 print(data.columns)
 
-# Create "Select All" checkboxes
-operator_all = pn.widgets.Checkbox(name='Select All Operators', value=False, width=200)
-game_type_all = pn.widgets.Checkbox(name='Select All Game Types', value=False, width=200)
-map_all = pn.widgets.Checkbox(name='Select All Maps', value=False, width=200)
+# Create category selectors
+category_select = pn.widgets.Select(
+    name='Select Category',
+    options=['Operators', 'Game Types', 'Maps'],
+    value=None,
+    width=200
+)
 
-# Create filter widgets with checkboxes
+# Create "Select All" checkbox (hidden by default)
+select_all = pn.widgets.Checkbox(
+    name='Select All',
+    value=False,
+    width=200,
+    visible=False
+)
+
+# Create filter widgets with checkboxes (hidden by default)
 operator_select = pn.widgets.CheckBoxGroup(
     name='Operators',
     options=list(data['Operator'].unique()),
     value=[],
     inline=False,
-    width=200
+    width=200,
+    visible=False
 )
 
 game_type_select = pn.widgets.CheckBoxGroup(
@@ -43,7 +55,8 @@ game_type_select = pn.widgets.CheckBoxGroup(
     options=list(data['Game Type'].unique()),
     value=[],
     inline=False,
-    width=200
+    width=200,
+    visible=False
 )
 
 map_select = pn.widgets.CheckBoxGroup(
@@ -51,8 +64,38 @@ map_select = pn.widgets.CheckBoxGroup(
     options=list(data['Map'].unique()),
     value=[],
     inline=False,
-    width=200
+    width=200,
+    visible=False
 )
+
+# Define callback to show/hide appropriate widgets
+def update_visibility(event):
+    select_all.visible = event.new is not None
+    operator_select.visible = event.new == 'Operators'
+    game_type_select.visible = event.new == 'Game Types'
+    map_select.visible = event.new == 'Maps'
+    
+    # Reset values when switching categories
+    if event.new != 'Operators':
+        operator_select.value = []
+    if event.new != 'Game Types':
+        game_type_select.value = []
+    if event.new != 'Maps':
+        map_select.value = []
+    select_all.value = False
+
+# Define callback for "Select All" checkbox
+def update_selection(event):
+    if category_select.value == 'Operators':
+        operator_select.value = list(data['Operator'].unique()) if event.new else []
+    elif category_select.value == 'Game Types':
+        game_type_select.value = list(data['Game Type'].unique()) if event.new else []
+    elif category_select.value == 'Maps':
+        map_select.value = list(data['Map'].unique()) if event.new else []
+
+# Link callbacks
+category_select.param.watch(update_visibility, 'value')
+select_all.param.watch(update_selection, 'value')
 
 # Define callback functions for "Select All" checkboxes
 def update_operator_select(event):
@@ -414,11 +457,10 @@ dashboard = pn.Column(
     pn.pane.HTML("<h1 class='dashboard-title'>Gaming Performance Dashboard</h1>", stylesheets=[css]),
     pn.Row(
         pn.Column(
-            operator_all,
+            category_select,
+            select_all,
             operator_select,
-            game_type_all,
             game_type_select,
-            map_all,
             map_select,
             date_range,
             create_stats,
