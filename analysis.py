@@ -83,9 +83,13 @@ def get_filtered_data(operator, game_type, map_name, date_range, kd_range):
 def create_plots(operator, game_type, map_name, date_range, kd_range):
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range, kd_range)
     
-    # Calculate metrics
+    # Calculate metrics with proper handling of edge cases
     filtered_data['Accuracy'] = (filtered_data['Hits'] / filtered_data['Shots']).round(3)
-    filtered_data['KD_Ratio'] = (filtered_data['Kills'] / filtered_data['Deaths']).round(2)
+    filtered_data['Accuracy'] = filtered_data['Accuracy'].clip(0, 1)  # Limit to valid range
+    filtered_data['KD_Ratio'] = filtered_data.apply(
+        lambda row: row['Kills'] / row['Deaths'] if row['Deaths'] > 0 else row['Kills'],
+        axis=1
+    ).round(2)
     filtered_data['Hour'] = filtered_data['UTC Timestamp'].dt.hour
     
     # Skill progression over time
@@ -99,21 +103,31 @@ def create_plots(operator, game_type, map_name, date_range, kd_range):
         color='#00ff00'
     )
     
-    # KD ratio heatmap by hour
-    kd_by_hour = filtered_data.groupby('Hour')['KD_Ratio'].mean().hvplot.heatmap(
+    # KD ratio by hour as a bar chart
+    kd_by_hour = filtered_data.groupby('Hour')['KD_Ratio'].mean().hvplot.bar(
         title="Average K/D Ratio by Hour",
         height=300,
-        cmap='RdYlGn',
-        colorbar=True
+        color='#00ff00',
+        xlabel='Hour of Day',
+        ylabel='Average K/D Ratio'
     )
     
-    # Accuracy distribution
-    accuracy_hist = filtered_data.hvplot.hist(
+    # Accuracy distribution (filtered)
+    valid_accuracy = filtered_data[
+        (filtered_data['Accuracy'] >= 0) & 
+        (filtered_data['Accuracy'] <= 1) & 
+        (filtered_data['Shots'] > 0)
+    ]
+    accuracy_hist = valid_accuracy.hvplot.hist(
         'Accuracy',
-        bins=20,
+        bins=30,
         title="Accuracy Distribution",
         height=300,
-        color='orange'
+        color='orange',
+        xlabel='Accuracy %',
+        ylabel='Number of Matches'
+    ).opts(
+        xlabel_position='bottom'
     )
     
     # Performance metrics over time
