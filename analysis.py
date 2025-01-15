@@ -101,7 +101,8 @@ def create_plots(operator, game_type, map_name, date_range):
         x='Local Time',
         y='Skill',
         title="Skill Progression Over Time",
-        height=300
+        height=300,
+        width=600
     )
     skill_plot.update_traces(line_color='#00ff00', line_width=2)
     skill_plot.update_layout(template="plotly_dark")
@@ -117,6 +118,7 @@ def create_plots(operator, game_type, map_name, date_range):
         y='KD_Ratio',
         title="Average K/D Ratio by Hour",
         height=300,
+        width=600,
         color_discrete_sequence=['#00ff00']
     )
     kd_by_hour.update_layout(
@@ -138,6 +140,7 @@ def create_plots(operator, game_type, map_name, date_range):
         nbins=30,
         title="Accuracy Distribution",
         height=300,
+        width=600,
         color_discrete_sequence=['orange']
     )
     accuracy_hist.update_layout(
@@ -152,7 +155,8 @@ def create_plots(operator, game_type, map_name, date_range):
         x='Local Time',
         y=['KD_Ratio', 'Accuracy'],
         title="Performance Metrics Over Time",
-        height=300
+        height=300,
+        width=600
     )
     metrics_plot.update_traces(line_width=2)
     metrics_plot.update_layout(template="plotly_dark")
@@ -174,6 +178,7 @@ def create_plots(operator, game_type, map_name, date_range):
         y='KD',
         title="K/D Ratio by Map",
         height=400,
+        width=600,
         color_discrete_sequence=['purple']
     )
     map_performance.update_layout(
@@ -293,10 +298,13 @@ dashboard = pn.Column(
             game_type_select,
             map_select,
             date_range,
-            create_stats
+            create_stats,
+            width=250
         ),
-        create_plots
-    )
+        create_plots,
+        justify_content='center'
+    ),
+    align='center'
 )
 
 # Serve the dashboard
