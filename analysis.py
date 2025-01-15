@@ -138,21 +138,28 @@ def create_plots(operator, game_type, map_name, date_range, kd_range):
         line_width=2
     )
     
-    # Top 5 maps performance
-    map_stats = filtered_data.groupby('Map')[['Kills', 'Deaths', 'Accuracy']].mean()
-    map_stats['Score'] = map_stats['Kills'] - map_stats['Deaths'] + map_stats['Accuracy']*10
-    top_maps = map_stats.nlargest(5, 'Score').hvplot.bar(
-        'Score',
-        title="Top 5 Maps Performance",
-        height=300,
-        color='purple'
+    # Map K/D performance
+    map_stats = filtered_data.groupby('Map').agg({
+        'Kills': 'sum',
+        'Deaths': 'sum'
+    })
+    map_stats['K/D Ratio'] = (map_stats['Kills'] / map_stats['Deaths']).round(2)
+    map_performance = map_stats.sort_values('K/D Ratio', ascending=True).hvplot.bar(
+        'K/D Ratio',
+        title="K/D Ratio by Map",
+        height=400,
+        color='purple',
+        xlabel='K/D Ratio',
+        ylabel='Map'
+    ).opts(
+        invert_yaxis=True
     )
     
     # Combine plots in a grid layout
     layout = pn.Column(
         pn.Row(skill_plot, kd_by_hour),
         pn.Row(accuracy_hist, metrics_plot),
-        top_maps,
+        map_performance,
         sizing_mode='stretch_width',
         height=1000
     )
