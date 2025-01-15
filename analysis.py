@@ -73,8 +73,8 @@ def get_filtered_data(operator, game_type, map_name, date_range):
     
     # Ensure timestamps are in the correct timezone before comparison
     filtered = filtered[
-        (filtered['Local Time'].dt.tz_localize(None).tz_localize(local_tz) >= start_time) &
-        (filtered['Local Time'].dt.tz_localize(None).tz_localize(local_tz) <= end_time)
+        (filtered['Local Time'] >= start_time) &
+        (filtered['Local Time'] <= end_time)
     ]
 
     # Add debug print statements
