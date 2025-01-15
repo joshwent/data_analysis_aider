@@ -602,8 +602,8 @@ dashboard = pn.template.MaterialTemplate(
     sidebar_width=300,
     header_background="#111217",
     header_color="#D8D9DA",
-    accent_base_color="#5B9AFF",
-    neutral_color="#181B1F"
+    accent="#5B9AFF",
+    background="#181B1F"
 )
 
 # Add components to the sidebar
