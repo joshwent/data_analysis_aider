@@ -141,11 +141,18 @@ def create_plots(operator, game_type, map_name, date_range):
         x='Local Time',
         y='Skill',
         title="Skill Progression Over Time",
-        height=300,
-        width=600
+        height=300
     )
-    skill_plot.update_traces(line_color='#00ff00', line_width=2)
-    skill_plot.update_layout(template="plotly_dark")
+    skill_plot.update_traces(line_color='#5B9AFF', line_width=2)
+    skill_plot.update_layout(
+        template="plotly_dark",
+        plot_bgcolor='rgba(24, 27, 31, 0.8)',
+        paper_bgcolor='rgba(24, 27, 31, 0.8)',
+        margin=dict(l=40, r=20, t=40, b=40),
+        title_x=0.5,
+        title_font=dict(size=16),
+        font=dict(family="Roboto", size=12, color="#D8D9DA")
+    )
     
     # KD ratio by hour as a bar chart with 12-hour format
     hourly_data = filtered_data.groupby('Hour')['KD_Ratio'].mean().reset_index()
@@ -347,16 +354,26 @@ def create_plots(operator, game_type, map_name, date_range):
     
     activity_heatmap_pane = pn.pane.Plotly(activity_heatmap)
     
-    # Combine plots in a grid layout
-    layout = pn.Column(
-        pn.Row(skill_plot_pane, kd_by_hour_pane),
-        pn.Row(accuracy_hist_pane, kd_hist_pane),
-        pn.Row(skill_hist_pane, metrics_plot_pane),
-        pn.Row(headshot_plot_pane, damage_plot_pane),
-        pn.Row(outcome_plot_pane, map_performance_pane),
-        pn.Row(activity_heatmap_pane),
+    # Create a responsive grid layout for plots
+    layout = pn.GridBox(
+        skill_plot_pane,
+        kd_by_hour_pane,
+        accuracy_hist_pane,
+        kd_hist_pane,
+        skill_hist_pane,
+        metrics_plot_pane,
+        headshot_plot_pane,
+        damage_plot_pane,
+        outcome_plot_pane,
+        map_performance_pane,
+        activity_heatmap_pane,
+        ncols=2,
         sizing_mode='stretch_width',
-        height=1800
+        styles={
+            'grid-gap': '1rem',
+            'padding': '1rem',
+            'background': 'var(--bg-dark)'
+        }
     )
     return layout
 
@@ -580,21 +597,37 @@ body {
 """
 
 # Layout the dashboard
-dashboard = pn.Column(
-    pn.pane.HTML("<h1 class='dashboard-title'>Gaming Performance Dashboard</h1>", stylesheets=[css]),
-    pn.Row(
-        pn.Column(
-            filter_accordion,
-            date_range,
-            width=250
-        ),
-        pn.Column(
-            create_stats,
-            create_plots,
-        ),
-        align='center'
-    ),
-    styles={'margin': '0 auto'}
+dashboard = pn.template.MaterialTemplate(
+    title="Gaming Performance Analytics",
+    sidebar_width=300,
+    header_background="#111217",
+    header_color="#D8D9DA",
+    accent_base_color="#5B9AFF",
+    neutral_color="#181B1F"
+)
+
+# Add components to the sidebar
+dashboard.sidebar.append(
+    pn.Column(
+        pn.pane.Markdown("## Filters", styles={'color': 'var(--text-primary)', 'margin-bottom': '1rem'}),
+        filter_accordion,
+        date_range,
+        background='var(--bg-card)',
+        margin=(0, 10),
+        sizing_mode='stretch_width'
+    )
+)
+
+# Main content area
+dashboard.main.append(
+    pn.Column(
+        create_stats,
+        pn.layout.Divider(margin=(20, 0)),
+        create_plots,
+        sizing_mode='stretch_width',
+        background='var(--bg-dark)',
+        margin=(0, 20)
+    )
 )
 
 # Serve the dashboard
