@@ -382,23 +382,24 @@ def create_stats(operator, game_type, map_name, date_range):
     kills_per_min = (total_kills / total_time * 60).round(2)
     
     return pn.Card(
-        pn.Column(
-            pn.pane.Markdown("### Performance Metrics", margin=(0,0,15,0), align='center', styles={'color': 'var(--accent-color)'}),
-            pn.pane.Markdown(f"**Skill Rating:** {avg_skill}", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**K/D Ratio:** {kd_ratio}", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**Win Rate:** {win_rate}%", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**Accuracy:** {accuracy}%", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown("---", margin=(10,0), align='center'),
-            pn.pane.Markdown("### Kill Streaks", margin=(15,0,15,0), align='center', styles={'color': 'var(--accent-color)'}),
-            pn.pane.Markdown(f"**Best Streak:** {kill_streak}", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown("---", margin=(10,0), align='center'),
-            pn.pane.Markdown("### Time Stats", margin=(15,0,15,0), align='center', styles={'color': 'var(--accent-color)'}),
-            pn.pane.Markdown(f"**Kills/min:** {kills_per_min}", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**Total Time:** {total_time}m", align='center', styles={'font-size': '1.1rem'}),
+        pn.GridBox(
+            pn.pane.Markdown("### Performance Summary", margin=(0,0,10,0), styles={'color': 'var(--accent-color)', 'font-size': '1.4rem', 'grid-column': 'span 4'}),
+            
+            # Performance metrics in a row
+            pn.pane.Markdown(f"**Skill Rating**\n{avg_skill}", align='center', styles={'font-size': '1.1rem'}),
+            pn.pane.Markdown(f"**K/D Ratio**\n{kd_ratio}", align='center', styles={'font-size': '1.1rem'}),
+            pn.pane.Markdown(f"**Win Rate**\n{win_rate}%", align='center', styles={'font-size': '1.1rem'}),
+            pn.pane.Markdown(f"**Accuracy**\n{accuracy}%", align='center', styles={'font-size': '1.1rem'}),
+            
+            # Additional stats in a row
+            pn.pane.Markdown(f"**Best Streak**\n{kill_streak}", align='center', styles={'font-size': '1.1rem'}),
+            pn.pane.Markdown(f"**Kills/min**\n{kills_per_min}", align='center', styles={'font-size': '1.1rem'}),
+            pn.pane.Markdown(f"**Total Time**\n{total_time}m", align='center', styles={'font-size': '1.1rem'}),
+            
+            ncols=4,
+            sizing_mode='stretch_width'
         ),
-        title='Performance Summary',
         css_classes=['stats-card'],
-        width=220,
         styles={
             'background': 'rgb(30, 30, 30)',
             'color': 'white',
@@ -525,17 +526,25 @@ body {
 }
 
 .stats-card .markdown {
-    padding: 0.5rem 1rem !important;
+    padding: 1rem !important;
+    text-align: center !important;
+    border-radius: 8px !important;
+    background: var(--bg-hover) !important;
+    margin: 0.25rem !important;
+    min-width: 120px !important;
 }
 
 .stats-card .markdown h3 {
     color: var(--accent-color) !important;
-    font-size: 1.1rem !important;
-    margin: 1rem 0 0.5rem !important;
+    font-size: 1.4rem !important;
+    margin: 0 0 1rem !important;
+    text-align: center !important;
 }
 
 .stats-card .markdown strong {
     color: var(--text-primary) !important;
+    display: block !important;
+    margin-bottom: 0.5rem !important;
 }
 
 /* Plot styling */
