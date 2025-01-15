@@ -128,7 +128,7 @@ def create_stats(operator, game_type):
     kill_streak = filtered_data['Longest Streak'].max()
     
     # Calculate time-based stats
-    total_time = filtered_data['Time Played'].sum()
+    total_time = filtered_data['Lifetime Time Played'].sum()
     kills_per_min = (total_kills / total_time * 60).round(2)
     
     return pn.Card(
