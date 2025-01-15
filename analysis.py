@@ -128,7 +128,7 @@ def create_plots(operator, game_type, map_name, date_range):
         xaxis_tickangle=45
     )
     
-    # Accuracy distribution (filtered)
+    # Accuracy distribution
     valid_accuracy = filtered_data[
         (filtered_data['Accuracy'] >= 0) & 
         (filtered_data['Accuracy'] <= 1) & 
@@ -145,6 +145,38 @@ def create_plots(operator, game_type, map_name, date_range):
     )
     accuracy_hist.update_layout(
         xaxis_title='Accuracy %',
+        yaxis_title='Number of Matches',
+        template="plotly_dark"
+    )
+
+    # K/D distribution
+    kd_hist = px.histogram(
+        filtered_data,
+        x='KD_Ratio',
+        nbins=30,
+        title="K/D Ratio Distribution",
+        height=300,
+        width=600,
+        color_discrete_sequence=['red']
+    )
+    kd_hist.update_layout(
+        xaxis_title='K/D Ratio',
+        yaxis_title='Number of Matches',
+        template="plotly_dark"
+    )
+
+    # Skill distribution
+    skill_hist = px.histogram(
+        filtered_data,
+        x='Skill',
+        nbins=30,
+        title="Skill Distribution",
+        height=300,
+        width=600,
+        color_discrete_sequence=['cyan']
+    )
+    skill_hist.update_layout(
+        xaxis_title='Skill Rating',
         yaxis_title='Number of Matches',
         template="plotly_dark"
     )
@@ -192,6 +224,8 @@ def create_plots(operator, game_type, map_name, date_range):
     skill_plot_pane = pn.pane.Plotly(skill_plot)
     kd_by_hour_pane = pn.pane.Plotly(kd_by_hour)
     accuracy_hist_pane = pn.pane.Plotly(accuracy_hist)
+    kd_hist_pane = pn.pane.Plotly(kd_hist)
+    skill_hist_pane = pn.pane.Plotly(skill_hist)
     metrics_plot_pane = pn.pane.Plotly(metrics_plot)
     map_performance_pane = pn.pane.Plotly(map_performance)
     
@@ -229,10 +263,11 @@ def create_plots(operator, game_type, map_name, date_range):
     # Combine plots in a grid layout
     layout = pn.Column(
         pn.Row(skill_plot_pane, kd_by_hour_pane),
-        pn.Row(accuracy_hist_pane, metrics_plot_pane),
+        pn.Row(accuracy_hist_pane, kd_hist_pane),
+        pn.Row(skill_hist_pane, metrics_plot_pane),
         pn.Row(map_performance_pane, activity_heatmap_pane),
         sizing_mode='stretch_width',
-        height=1000
+        height=1300
     )
     return layout
 
