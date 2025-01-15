@@ -567,10 +567,12 @@ dashboard = pn.Column(
         pn.Column(
             filter_accordion,
             date_range,
-            create_stats,
             width=250
         ),
-        create_plots,
+        pn.Column(
+            create_stats,
+            create_plots,
+        ),
         align='center'
     ),
     styles={'margin': '0 auto'}
