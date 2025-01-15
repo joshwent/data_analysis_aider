@@ -32,9 +32,10 @@ operator_select = pn.widgets.CheckBoxGroup(
     inline=False,
     width=220,
     styles={
-        'background': 'rgb(30, 30, 30)',
-        'padding': '10px',
-        'border-radius': '4px'
+        'background': 'var(--bg-card)',
+        'padding': '12px',
+        'border-radius': '8px',
+        'margin-bottom': '8px'
     }
 )
 
@@ -45,9 +46,10 @@ game_type_select = pn.widgets.CheckBoxGroup(
     inline=False,
     width=220,
     styles={
-        'background': 'rgb(30, 30, 30)',
-        'padding': '10px',
-        'border-radius': '4px'
+        'background': 'var(--bg-card)',
+        'padding': '12px',
+        'border-radius': '8px',
+        'margin-bottom': '8px'
     }
 )
 
@@ -58,9 +60,10 @@ map_select = pn.widgets.CheckBoxGroup(
     inline=False,
     width=220,
     styles={
-        'background': 'rgb(30, 30, 30)',
-        'padding': '10px',
-        'border-radius': '4px'
+        'background': 'var(--bg-card)',
+        'padding': '12px',
+        'border-radius': '8px',
+        'margin-bottom': '8px'
     }
 )
 
@@ -450,19 +453,26 @@ body {
 .bk-accordion-header {
     background: var(--bg-card) !important;
     padding: 1rem !important;
-    color: var(--text-primary) !important;
+    color: var(--accent-color) !important;
     font-weight: 600 !important;
     border: none !important;
     transition: all 0.2s ease !important;
+    border-bottom: 1px solid var(--border-color) !important;
 }
 
 .bk-accordion-header:hover {
     background: var(--bg-hover) !important;
+    color: var(--primary-color) !important;
 }
 
 .bk-accordion-header.active {
     background: var(--bg-hover) !important;
+    color: var(--primary-color) !important;
     border-bottom: 2px solid var(--primary-color) !important;
+}
+
+.bk-accordion-header button {
+    color: inherit !important;
 }
 
 .bk-accordion button:before {
