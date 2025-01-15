@@ -15,9 +15,13 @@ data = pd.read_csv(csv_file)
 # Inspect the data
 print(data.head())
 
+import datetime
+import zoneinfo
+
 # Convert UTC timestamps to local time
 data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp'])
-data['Local Time'] = data['UTC Timestamp'].dt.tz_localize('UTC').dt.tz_convert('local')
+local_tz = datetime.datetime.now().astimezone().tzinfo
+data['Local Time'] = data['UTC Timestamp'].dt.tz_localize('UTC').dt.tz_convert(local_tz)
 
 print(data.columns)
 
@@ -61,8 +65,8 @@ def get_filtered_data(operator, game_type, map_name, date_range):
     
     # Date range filter
     # Convert date range to UTC for filtering
-    start_time = pd.Timestamp(date_range[0]).tz_localize('local').tz_convert('UTC')
-    end_time = pd.Timestamp(date_range[1]).tz_localize('local').tz_convert('UTC')
+    start_time = pd.Timestamp(date_range[0]).tz_localize(local_tz).tz_convert('UTC')
+    end_time = pd.Timestamp(date_range[1]).tz_localize(local_tz).tz_convert('UTC')
     
     filtered = filtered[
         (filtered['UTC Timestamp'] >= start_time) &
