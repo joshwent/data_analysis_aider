@@ -422,21 +422,37 @@ css = """
 }
 
 .bk-accordion {
-    background: rgb(30, 30, 30) !important;
+    background: rgb(20, 20, 20) !important;
     border-radius: 8px !important;
     border: 1px solid #444 !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
 }
 
 .bk-accordion-header {
-    background: rgb(40, 40, 40) !important;
+    background: rgb(25, 25, 25) !important;
     border-radius: 8px !important;
     padding: 10px !important;
     color: #00ff88 !important;
+    border: none !important;
 }
 
 .bk-accordion-header:hover {
-    background: rgb(50, 50, 50) !important;
+    background: rgb(35, 35, 35) !important;
+}
+
+.bk-accordion-header.active {
+    background: rgb(30, 30, 30) !important;
+    border-bottom: 2px solid #00ff88 !important;
+}
+
+.bk-accordion button:before {
+    border-color: #00ff88 !important;
+    opacity: 0.8 !important;
+}
+
+.bk-accordion-content {
+    background: rgb(20, 20, 20) !important;
+    border: none !important;
 }
 
 .bk-checkbox-group {
