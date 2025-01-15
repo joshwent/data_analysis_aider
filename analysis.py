@@ -25,23 +25,26 @@ data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
 
 print(data.columns)
 
-# Create filter widgets
+# Create filter widgets with reduced width
 operator_select = pn.widgets.Select(
     name='Operator', 
     options=['All'] + list(data['Operator'].unique()),
-    value='All'
+    value='All',
+    width=200
 )
 
 game_type_select = pn.widgets.Select(
     name='Game Type',
     options=['All'] + list(data['Game Type'].unique()),
-    value='All'
+    value='All',
+    width=200
 )
 
 map_select = pn.widgets.Select(
     name='Map',
     options=['All'] + list(data['Map'].unique()),
-    value='All'
+    value='All',
+    width=200
 )
 
 date_range = pn.widgets.DateRangeSlider(
@@ -49,7 +52,8 @@ date_range = pn.widgets.DateRangeSlider(
     start=data['Local Time'].min().replace(tzinfo=None),
     end=data['Local Time'].max().replace(tzinfo=None),
     value=(data['Local Time'].min().replace(tzinfo=None), 
-           data['Local Time'].max().replace(tzinfo=None))
+           data['Local Time'].max().replace(tzinfo=None)),
+    width=200
 )
 
 # Create plots using hvPlot
@@ -250,21 +254,20 @@ def create_stats(operator, game_type, map_name, date_range):
     
     return pn.Card(
         pn.Column(
-            pn.pane.Markdown("## Performance Metrics"),
-            pn.pane.Markdown(f"**Average Skill Rating:** {avg_skill}"),
-            pn.pane.Markdown(f"**K/D Ratio:** {kd_ratio} ({total_kills}/{total_deaths})"),
-            pn.pane.Markdown(f"**Win Rate:** {win_rate}%"),
-            pn.pane.Markdown(f"**Accuracy:** {accuracy}%"),
-            pn.pane.Markdown(f"**Average Score:** {avg_score}"),
-            pn.pane.Markdown("## Streaks"),
-            pn.pane.Markdown(f"**Best Kill Streak:** {kill_streak}"),
-            pn.pane.Markdown("## Efficiency"),
-            pn.pane.Markdown(f"**Kills per Minute:** {kills_per_min}"),
-            pn.pane.Markdown(f"**Total Time Played:** {total_time} minutes"),
+            pn.pane.Markdown("### Metrics", margin=(0,0,10,0)),
+            pn.pane.Markdown(f"**Skill:** {avg_skill}"),
+            pn.pane.Markdown(f"**K/D:** {kd_ratio}"),
+            pn.pane.Markdown(f"**Win:** {win_rate}%"),
+            pn.pane.Markdown(f"**Acc:** {accuracy}%"),
+            pn.pane.Markdown("### Streaks", margin=(10,0,10,0)),
+            pn.pane.Markdown(f"**Best:** {kill_streak}"),
+            pn.pane.Markdown("### Time", margin=(10,0,10,0)),
+            pn.pane.Markdown(f"**K/min:** {kills_per_min}"),
+            pn.pane.Markdown(f"**Total:** {total_time}m"),
         ),
-        title='Statistics',
+        title='Stats',
         css_classes=['stats-card'],
-        width=400,
+        width=200,
         styles={
             'background': 'rgb(30, 30, 30)',
             'color': 'white',
