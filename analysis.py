@@ -14,6 +14,10 @@ data = pd.read_csv(csv_file)
 # Inspect the data
 print(data.head())
 
+data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp'])
+
+print(data.columns)
+
 # Create filter widgets
 operator_select = pn.widgets.Select(
     name='Operator', 
@@ -59,7 +63,7 @@ def create_plots(operator, game_type):
     )
     
     # Calculate accuracy first
-    filtered_data['Accuracy'] = (filtered_data['Hits'] / (filtered_data['Hits'] + filtered_data['Lifetime Misses'])).round(3)
+    filtered_data['Accuracy'] = (filtered_data['Hits'] / filtered_data['Shots']).round(2)
     
     accuracy_plot = filtered_data.hvplot.bar(
         'Game Type',
@@ -69,7 +73,7 @@ def create_plots(operator, game_type):
         color='green'
     )
     
-    return pn.Column(skill_plot, pn.Row(kd_plot, accuracy_plot))
+    return pn.Column(skill_plot, kd_plot, accuracy_plot)
 
 # Create stats cards
 @pn.depends(operator_select, game_type_select)
@@ -103,12 +107,11 @@ css = """
 
 # Layout the dashboard
 dashboard = pn.Column(
-    pn.pane.HTML("<h1 class='dashboard-title'>Gaming Performance Dashboard</h1>", styles=dict(background="none")),
+    pn.pane.HTML("<h1 class='dashboard-title'>Gaming Performance Dashboard</h1>", stylesheets=[css]),
     pn.Row(
         pn.Column(operator_select, game_type_select, create_stats),
         create_plots
-    ),
-    css=css
+    )
 )
 
 # Serve the dashboard
