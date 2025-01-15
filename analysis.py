@@ -47,11 +47,11 @@ map_select = pn.widgets.Select(
     width=200
 )
 
-date_range = pn.widgets.DateRangeSlider(
+date_range = pn.widgets.DatetimeRangePicker(
     name='Date Range',
     start=data['Local Time'].min().replace(tzinfo=None),
     end=data['Local Time'].max().replace(tzinfo=None),
-    value=(data['Local Time'].min().replace(tzinfo=None), 
+    value=(data['Local Time'].min().replace(tzinfo=None),
            data['Local Time'].max().replace(tzinfo=None)),
     width=200
 )
