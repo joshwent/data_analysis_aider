@@ -76,7 +76,9 @@ def create_plots(operator, game_type, map_name, date_range):
         lambda row: row['Kills'] / row['Deaths'] if row['Deaths'] > 0 else row['Kills'],
         axis=1
     ).round(2)
+    # Extract time-based features
     filtered_data['Hour'] = filtered_data['UTC Timestamp'].dt.hour
+    filtered_data['Day'] = filtered_data['UTC Timestamp'].dt.day_name()
     
     # Skill progression over time
     skill_plot = px.line(
@@ -168,11 +170,37 @@ def create_plots(operator, game_type, map_name, date_range):
     metrics_plot_pane = pn.pane.Plotly(metrics_plot)
     map_performance_pane = pn.pane.Plotly(map_performance)
     
+    # Create activity heatmap
+    activity_df = filtered_data.groupby(['Day', 'Hour']).size().reset_index(name='Count')
+    activity_pivot = activity_df.pivot(index='Day', columns='Hour', values='Count').fillna(0)
+    
+    # Reorder days to start with Monday
+    day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    activity_pivot = activity_pivot.reindex(day_order)
+    
+    activity_heatmap = go.Figure(data=go.Heatmap(
+        z=activity_pivot.values,
+        x=activity_pivot.columns,
+        y=activity_pivot.index,
+        colorscale='Viridis',
+        hoverongaps=False
+    ))
+    
+    activity_heatmap.update_layout(
+        title='Gaming Activity Heatmap',
+        xaxis_title='Hour of Day',
+        yaxis_title='Day of Week',
+        height=400,
+        template="plotly_dark"
+    )
+    
+    activity_heatmap_pane = pn.pane.Plotly(activity_heatmap)
+    
     # Combine plots in a grid layout
     layout = pn.Column(
         pn.Row(skill_plot_pane, kd_by_hour_pane),
         pn.Row(accuracy_hist_pane, metrics_plot_pane),
-        map_performance_pane,
+        pn.Row(map_performance_pane, activity_heatmap_pane),
         sizing_mode='stretch_width',
         height=1000
     )
