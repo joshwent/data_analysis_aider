@@ -24,25 +24,28 @@ data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
 
 print(data.columns)
 
-# Create filter widgets with reduced width
-operator_select = pn.widgets.Select(
-    name='Operator', 
-    options=['All'] + list(data['Operator'].unique()),
-    value='All',
+# Create filter widgets with checkboxes
+operator_select = pn.widgets.CheckBoxGroup(
+    name='Operators',
+    options=list(data['Operator'].unique()),
+    value=[],
+    inline=False,
     width=200
 )
 
-game_type_select = pn.widgets.Select(
-    name='Game Type',
-    options=['All'] + list(data['Game Type'].unique()),
-    value='All',
+game_type_select = pn.widgets.CheckBoxGroup(
+    name='Game Types',
+    options=list(data['Game Type'].unique()),
+    value=[],
+    inline=False,
     width=200
 )
 
-map_select = pn.widgets.Select(
-    name='Map',
-    options=['All'] + list(data['Map'].unique()),
-    value='All',
+map_select = pn.widgets.CheckBoxGroup(
+    name='Maps',
+    options=list(data['Map'].unique()),
+    value=[],
+    inline=False,
     width=200
 )
 
@@ -56,16 +59,16 @@ date_range = pn.widgets.DatetimeRangePicker(
 )
 
 # Create plots using hvPlot
-def get_filtered_data(operator, game_type, map_name, date_range):
+def get_filtered_data(operators, game_types, maps, date_range):
     filtered = data.copy()
     
-    # Basic filters with case-insensitive comparison
-    if operator != 'All':
-        filtered = filtered[filtered['Operator'].str.lower() == operator.lower()]
-    if game_type != 'All':
-        filtered = filtered[filtered['Game Type'].str.lower() == game_type.lower()]
-    if map_name != 'All':
-        filtered = filtered[filtered['Map'].str.lower() == map_name.lower()]
+    # Basic filters with checkbox lists
+    if operators:
+        filtered = filtered[filtered['Operator'].isin(operators)]
+    if game_types:
+        filtered = filtered[filtered['Game Type'].isin(game_types)]
+    if maps:
+        filtered = filtered[filtered['Map'].isin(maps)]
     
     # Date range filter with proper timezone handling
     start_time = pd.Timestamp(date_range[0]).tz_localize(local_tz)
