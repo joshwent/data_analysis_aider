@@ -597,13 +597,13 @@ body {
 """
 
 # Layout the dashboard
-dashboard = pn.template.MaterialTemplate(
+dashboard = pn.template.FastListTemplate(
     title="Gaming Performance Analytics",
     sidebar_width=300,
     header_background="#111217",
     header_color="#D8D9DA",
-    accent="#5B9AFF",
-    background="#181B1F"
+    theme="dark",
+    theme_toggle=False
 )
 
 # Add components to the sidebar
