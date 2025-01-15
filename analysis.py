@@ -97,20 +97,6 @@ def update_selection(event):
 category_select.param.watch(update_visibility, 'value')
 select_all.param.watch(update_selection, 'value')
 
-# Define callback functions for "Select All" checkboxes
-def update_operator_select(event):
-    operator_select.value = list(data['Operator'].unique()) if event.new else []
-
-def update_game_type_select(event):
-    game_type_select.value = list(data['Game Type'].unique()) if event.new else []
-
-def update_map_select(event):
-    map_select.value = list(data['Map'].unique()) if event.new else []
-
-# Link callbacks to "Select All" checkboxes
-operator_all.param.watch(update_operator_select, 'value')
-game_type_all.param.watch(update_game_type_select, 'value')
-map_all.param.watch(update_map_select, 'value')
 
 date_range = pn.widgets.DatetimeRangePicker(
     name='Date Range',
