@@ -59,23 +59,33 @@ date_range = pn.widgets.DatetimeRangePicker(
 def get_filtered_data(operator, game_type, map_name, date_range):
     filtered = data.copy()
     
-    # Basic filters
+    # Basic filters with case-insensitive comparison
     if operator != 'All':
-        filtered = filtered[filtered['Operator'] == operator]
+        filtered = filtered[filtered['Operator'].str.lower() == operator.lower()]
     if game_type != 'All':
-        filtered = filtered[filtered['Game Type'] == game_type]
+        filtered = filtered[filtered['Game Type'].str.lower() == game_type.lower()]
     if map_name != 'All':
-        filtered = filtered[filtered['Map'] == map_name]
+        filtered = filtered[filtered['Map'].str.lower() == map_name.lower()]
     
     # Date range filter with proper timezone handling
     start_time = pd.Timestamp(date_range[0]).tz_localize(local_tz)
     end_time = pd.Timestamp(date_range[1]).tz_localize(local_tz)
     
+    # Ensure timestamps are in the correct timezone before comparison
     filtered = filtered[
-        (filtered['Local Time'] >= start_time) &
-        (filtered['Local Time'] <= end_time)
+        (filtered['Local Time'].dt.tz_localize(None).tz_localize(local_tz) >= start_time) &
+        (filtered['Local Time'].dt.tz_localize(None).tz_localize(local_tz) <= end_time)
     ]
 
+    # Add debug print statements
+    print(f"Filtering stats:")
+    print(f"Total rows before filter: {len(data)}")
+    print(f"Operator filter: {operator}")
+    print(f"Game Type filter: {game_type}")
+    print(f"Map filter: {map_name}")
+    print(f"Date range: {start_time} to {end_time}")
+    print(f"Remaining rows after filter: {len(filtered)}")
+    
     return filtered
 
 @pn.depends(operator_select, game_type_select, map_select, date_range)
