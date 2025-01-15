@@ -77,10 +77,13 @@ def create_stats(operator, game_type):
     total_kills = filtered_data['Kills'].sum()
     win_rate = (filtered_data['Match Outcome'] == 'win').mean().round(3) * 100
     
-    return pn.Column(
-        pn.pane.Markdown(f"### Average Skill: {avg_skill}"),
-        pn.pane.Markdown(f"### Total Kills: {total_kills}"),
-        pn.pane.Markdown(f"### Win Rate: {win_rate}%"),
+    return pn.Card(
+        pn.Column(
+            pn.pane.Markdown(f"### Average Skill: {avg_skill}"),
+            pn.pane.Markdown(f"### Total Kills: {total_kills}"),
+            pn.pane.Markdown(f"### Win Rate: {win_rate}%"),
+        ),
+        title='Statistics',
         background='rgb(30, 30, 30)',
         css_classes=['stats-card'],
         width=300
