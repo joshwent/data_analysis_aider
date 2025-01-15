@@ -302,9 +302,9 @@ dashboard = pn.Column(
             width=250
         ),
         create_plots,
-        justify_content='center'
+        align='center'
     ),
-    align='center'
+    styles={'margin': '0 auto'}
 )
 
 # Serve the dashboard
