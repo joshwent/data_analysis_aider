@@ -259,24 +259,28 @@ def create_stats(operator, game_type, map_name, date_range):
     
     return pn.Card(
         pn.Column(
-            pn.pane.Markdown("### Metrics", margin=(0,0,10,0)),
-            pn.pane.Markdown(f"**Skill:** {avg_skill}"),
-            pn.pane.Markdown(f"**K/D:** {kd_ratio}"),
-            pn.pane.Markdown(f"**Win:** {win_rate}%"),
-            pn.pane.Markdown(f"**Acc:** {accuracy}%"),
-            pn.pane.Markdown("### Streaks", margin=(10,0,10,0)),
-            pn.pane.Markdown(f"**Best:** {kill_streak}"),
-            pn.pane.Markdown("### Time", margin=(10,0,10,0)),
-            pn.pane.Markdown(f"**K/min:** {kills_per_min}"),
-            pn.pane.Markdown(f"**Total:** {total_time}m"),
+            pn.pane.Markdown("### Performance Metrics", margin=(0,0,15,0), align='center'),
+            pn.pane.Markdown(f"**Skill Rating:** {avg_skill}", align='center'),
+            pn.pane.Markdown(f"**K/D Ratio:** {kd_ratio}", align='center'),
+            pn.pane.Markdown(f"**Win Rate:** {win_rate}%", align='center'),
+            pn.pane.Markdown(f"**Accuracy:** {accuracy}%", align='center'),
+            pn.pane.Markdown("---", margin=(10,0), align='center'),
+            pn.pane.Markdown("### Kill Streaks", margin=(15,0,15,0), align='center'),
+            pn.pane.Markdown(f"**Best Streak:** {kill_streak}", align='center'),
+            pn.pane.Markdown("---", margin=(10,0), align='center'),
+            pn.pane.Markdown("### Time Stats", margin=(15,0,15,0), align='center'),
+            pn.pane.Markdown(f"**Kills/min:** {kills_per_min}", align='center'),
+            pn.pane.Markdown(f"**Total Time:** {total_time}m", align='center'),
         ),
-        title='Stats',
+        title='Performance Summary',
         css_classes=['stats-card'],
-        width=200,
+        width=220,
         styles={
             'background': 'rgb(30, 30, 30)',
             'color': 'white',
-            'border': '1px solid #444'
+            'border': '1px solid #444',
+            'border-radius': '8px',
+            'box-shadow': '0 2px 4px rgba(0,0,0,0.2)'
         }
     )
 
