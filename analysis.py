@@ -412,47 +412,57 @@ def create_stats(operator, game_type, map_name, date_range):
 # Define CSS styles
 css = """
 :root {
-    --primary-color: #4A90E2;
-    --accent-color: #5CD9A6;
-    --bg-dark: #1A1A1A;
-    --bg-card: #242424;
-    --bg-hover: #2A2A2A;
-    --text-primary: #FFFFFF;
-    --text-secondary: #B3B3B3;
-    --border-color: #333333;
+    --primary-color: #5B9AFF;
+    --accent-color: #00D1B2;
+    --bg-dark: #111217;
+    --bg-card: #181B1F;
+    --bg-hover: #22252B;
+    --text-primary: #D8D9DA;
+    --text-secondary: #99A1B2;
+    --border-color: #2C3235;
+    --panel-header: #22252B;
+    --panel-border: #34363C;
+    --success-color: #6CCF8E;
+    --warning-color: #FF9900;
+    --danger-color: #FF5286;
 }
 
 body {
     background-color: var(--bg-dark) !important;
     color: var(--text-primary) !important;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-family: 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    line-height: 1.5 !important;
 }
 
 .dashboard-title {
-    color: var(--accent-color);
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 2rem 0;
-    text-align: center;
-    letter-spacing: -0.5px;
+    color: var(--text-primary);
+    font-size: 1.75rem;
+    font-weight: 500;
+    margin: 1rem 0;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--panel-border);
+    background: var(--bg-card);
+    letter-spacing: 0.2px;
 }
 
 .bk-accordion {
     background: var(--bg-card) !important;
-    border-radius: 12px !important;
-    border: 1px solid var(--border-color) !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 3px !important;
+    border: 1px solid var(--panel-border) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
     overflow: hidden !important;
+    margin-bottom: 0.5rem !important;
 }
 
 .bk-accordion-header {
-    background: var(--bg-card) !important;
-    padding: 1rem !important;
-    color: var(--accent-color) !important;
-    font-weight: 600 !important;
+    background: var(--panel-header) !important;
+    padding: 0.75rem 1rem !important;
+    color: var(--text-primary) !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
     border: none !important;
-    transition: all 0.2s ease !important;
-    border-bottom: 1px solid var(--border-color) !important;
+    transition: all 0.15s ease !important;
+    border-bottom: 1px solid var(--panel-border) !important;
 }
 
 .bk-accordion-header:hover {
