@@ -27,26 +27,41 @@ print(data.columns)
 # Create filter widgets with checkboxes
 operator_select = pn.widgets.CheckBoxGroup(
     name='Select Operators',
-    options=list(data['Operator'].unique()),
+    options=sorted(list(data['Operator'].unique())),
     value=[],
     inline=False,
-    width=200
+    width=220,
+    styles={
+        'background': 'rgb(30, 30, 30)',
+        'padding': '10px',
+        'border-radius': '4px'
+    }
 )
 
 game_type_select = pn.widgets.CheckBoxGroup(
     name='Select Game Types',
-    options=list(data['Game Type'].unique()),
+    options=sorted(list(data['Game Type'].unique())),
     value=[],
     inline=False,
-    width=200
+    width=220,
+    styles={
+        'background': 'rgb(30, 30, 30)',
+        'padding': '10px',
+        'border-radius': '4px'
+    }
 )
 
 map_select = pn.widgets.CheckBoxGroup(
     name='Select Maps',
-    options=list(data['Map'].unique()),
+    options=sorted(list(data['Map'].unique())),
     value=[],
     inline=False,
-    width=200
+    width=220,
+    styles={
+        'background': 'rgb(30, 30, 30)',
+        'padding': '10px',
+        'border-radius': '4px'
+    }
 )
 
 # Create filter accordion
@@ -65,7 +80,13 @@ date_range = pn.widgets.DatetimeRangePicker(
     end=data['Local Time'].max().replace(tzinfo=None),
     value=(data['Local Time'].min().replace(tzinfo=None),
            data['Local Time'].max().replace(tzinfo=None)),
-    width=200
+    width=220,
+    styles={
+        'background': 'rgb(30, 30, 30)',
+        'padding': '10px',
+        'border-radius': '4px',
+        'margin-top': '20px'
+    }
 )
 
 # Create plots using hvPlot
@@ -393,9 +414,51 @@ def create_stats(operator, game_type, map_name, date_range):
 # Define CSS styles
 css = """
 .dashboard-title {
-    color: #FF5733;
+    color: #00ff88;
     font-size: 32px;
     margin-bottom: 20px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(0,255,136,0.3);
+}
+
+.bk-accordion {
+    background: rgb(30, 30, 30) !important;
+    border-radius: 8px !important;
+    border: 1px solid #444 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+}
+
+.bk-accordion-header {
+    background: rgb(40, 40, 40) !important;
+    border-radius: 8px !important;
+    padding: 10px !important;
+    color: #00ff88 !important;
+}
+
+.bk-accordion-header:hover {
+    background: rgb(50, 50, 50) !important;
+}
+
+.bk-checkbox-group {
+    margin: 10px !important;
+}
+
+.bk-input {
+    background: rgb(40, 40, 40) !important;
+    border: 1px solid #444 !important;
+    border-radius: 4px !important;
+    color: white !important;
+}
+
+.bk-input:focus {
+    border-color: #00ff88 !important;
+    box-shadow: 0 0 0 1px #00ff88 !important;
+}
+
+.stats-card .bk-card-header {
+    background: rgb(40, 40, 40) !important;
+    border-bottom: 1px solid #444 !important;
+    color: #00ff88 !important;
 }
 """
 
