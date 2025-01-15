@@ -44,16 +44,8 @@ date_range = pn.widgets.DateRangeSlider(
     value=(data['UTC Timestamp'].min(), data['UTC Timestamp'].max())
 )
 
-kd_range = pn.widgets.RangeSlider(
-    name='K/D Ratio Range',
-    start=0,
-    end=5,
-    value=(0, 5),
-    step=0.1
-)
-
 # Create plots using hvPlot
-def get_filtered_data(operator, game_type, map_name, date_range, kd_range):
+def get_filtered_data(operator, game_type, map_name, date_range):
     filtered = data.copy()
     
     # Basic filters
@@ -69,19 +61,12 @@ def get_filtered_data(operator, game_type, map_name, date_range, kd_range):
         (filtered['UTC Timestamp'] >= pd.Timestamp(date_range[0])) &
         (filtered['UTC Timestamp'] <= pd.Timestamp(date_range[1]))
     ]
-    
-    # Calculate and filter by KD ratio
-    filtered['KD_Ratio'] = filtered['Kills'] / filtered['Deaths']
-    filtered = filtered[
-        (filtered['KD_Ratio'] >= kd_range[0]) &
-        (filtered['KD_Ratio'] <= kd_range[1])
-    ]
-    
+
     return filtered
 
-@pn.depends(operator_select, game_type_select, map_select, date_range, kd_range)
-def create_plots(operator, game_type, map_name, date_range, kd_range):
-    filtered_data = get_filtered_data(operator, game_type, map_name, date_range, kd_range)
+@pn.depends(operator_select, game_type_select, map_select, date_range)
+def create_plots(operator, game_type, map_name, date_range):
+    filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
     # Calculate metrics with proper handling of edge cases
     filtered_data['Accuracy'] = (filtered_data['Hits'] / filtered_data['Shots']).round(3)
@@ -172,9 +157,9 @@ def create_plots(operator, game_type, map_name, date_range, kd_range):
     return layout
 
 # Create stats cards
-@pn.depends(operator_select, game_type_select, map_select, date_range, kd_range)
-def create_stats(operator, game_type, map_name, date_range, kd_range):
-    filtered_data = get_filtered_data(operator, game_type, map_name, date_range, kd_range)
+@pn.depends(operator_select, game_type_select, map_select, date_range)
+def create_stats(operator, game_type, map_name, date_range):
+    filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
     # Calculate basic stats
     avg_skill = filtered_data['Skill'].mean().round(2)
@@ -234,7 +219,6 @@ dashboard = pn.Column(
             game_type_select,
             map_select,
             date_range,
-            kd_range,
             create_stats
         ),
         create_plots
