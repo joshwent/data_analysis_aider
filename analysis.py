@@ -24,78 +24,39 @@ data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
 
 print(data.columns)
 
-# Create category selectors
-category_select = pn.widgets.Select(
-    name='Select Category',
-    options=['Operators', 'Game Types', 'Maps'],
-    value=None,
-    width=200
-)
-
-# Create "Select All" checkbox (hidden by default)
-select_all = pn.widgets.Checkbox(
-    name='Select All',
-    value=False,
-    width=200,
-    visible=False
-)
-
-# Create filter widgets with checkboxes (hidden by default)
+# Create filter widgets with checkboxes
 operator_select = pn.widgets.CheckBoxGroup(
-    name='Operators',
+    name='Select Operators',
     options=list(data['Operator'].unique()),
     value=[],
     inline=False,
-    width=200,
-    visible=False
+    width=200
 )
 
 game_type_select = pn.widgets.CheckBoxGroup(
-    name='Game Types',
+    name='Select Game Types',
     options=list(data['Game Type'].unique()),
     value=[],
     inline=False,
-    width=200,
-    visible=False
+    width=200
 )
 
 map_select = pn.widgets.CheckBoxGroup(
-    name='Maps',
+    name='Select Maps',
     options=list(data['Map'].unique()),
     value=[],
     inline=False,
-    width=200,
-    visible=False
+    width=200
 )
 
-# Define callback to show/hide appropriate widgets
-def update_visibility(event):
-    select_all.visible = event.new is not None
-    operator_select.visible = event.new == 'Operators'
-    game_type_select.visible = event.new == 'Game Types'
-    map_select.visible = event.new == 'Maps'
-    
-    # Reset values when switching categories
-    if event.new != 'Operators':
-        operator_select.value = []
-    if event.new != 'Game Types':
-        game_type_select.value = []
-    if event.new != 'Maps':
-        map_select.value = []
-    select_all.value = False
-
-# Define callback for "Select All" checkbox
-def update_selection(event):
-    if category_select.value == 'Operators':
-        operator_select.value = list(data['Operator'].unique()) if event.new else []
-    elif category_select.value == 'Game Types':
-        game_type_select.value = list(data['Game Type'].unique()) if event.new else []
-    elif category_select.value == 'Maps':
-        map_select.value = list(data['Map'].unique()) if event.new else []
-
-# Link callbacks
-category_select.param.watch(update_visibility, 'value')
-select_all.param.watch(update_selection, 'value')
+# Create filter accordion
+filter_accordion = pn.Accordion(
+    ('Operators', pn.Column(operator_select)),
+    ('Game Types', pn.Column(game_type_select)),
+    ('Maps', pn.Column(map_select)),
+    width=250,
+    active=[0]  # Open first panel by default
+)
 
 
 date_range = pn.widgets.DatetimeRangePicker(
@@ -443,11 +404,7 @@ dashboard = pn.Column(
     pn.pane.HTML("<h1 class='dashboard-title'>Gaming Performance Dashboard</h1>", stylesheets=[css]),
     pn.Row(
         pn.Column(
-            category_select,
-            select_all,
-            operator_select,
-            game_type_select,
-            map_select,
+            filter_accordion,
             date_range,
             create_stats,
             width=250
