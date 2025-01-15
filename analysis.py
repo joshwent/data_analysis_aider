@@ -192,6 +192,50 @@ def create_plots(operator, game_type, map_name, date_range):
     metrics_plot.update_traces(line_width=2)
     metrics_plot.update_layout(template="plotly_dark")
     
+    # Headshot ratio over time
+    filtered_data['Headshot_Ratio'] = (filtered_data['Headshots'] / filtered_data['Kills']).fillna(0)
+    headshot_plot = px.line(
+        filtered_data,
+        x='Local Time',
+        y='Headshot_Ratio',
+        title="Headshot Ratio Over Time",
+        height=300,
+        width=600
+    )
+    headshot_plot.update_traces(line_color='#ff4d4d', line_width=2)
+    headshot_plot.update_layout(
+        yaxis_title='Headshot Ratio',
+        template="plotly_dark"
+    )
+
+    # Damage efficiency (damage done vs taken)
+    damage_plot = px.scatter(
+        filtered_data,
+        x='Damage Taken',
+        y='Damage Done',
+        title="Damage Efficiency",
+        height=300,
+        width=600,
+        color='Match Outcome',
+        trendline="ols"
+    )
+    damage_plot.update_layout(
+        template="plotly_dark",
+        showlegend=True
+    )
+
+    # Match outcomes pie chart
+    outcome_stats = filtered_data['Match Outcome'].value_counts()
+    outcome_plot = px.pie(
+        values=outcome_stats.values,
+        names=outcome_stats.index,
+        title="Match Outcomes Distribution",
+        height=300,
+        width=600,
+        color_discrete_sequence=px.colors.qualitative.Set3
+    )
+    outcome_plot.update_layout(template="plotly_dark")
+
     # Map K/D performance
     map_stats = (filtered_data.groupby('Map')
                 .agg({'Kills': 'sum', 'Deaths': 'sum'})
@@ -227,6 +271,9 @@ def create_plots(operator, game_type, map_name, date_range):
     skill_hist_pane = pn.pane.Plotly(skill_hist)
     metrics_plot_pane = pn.pane.Plotly(metrics_plot)
     map_performance_pane = pn.pane.Plotly(map_performance)
+    headshot_plot_pane = pn.pane.Plotly(headshot_plot)
+    damage_plot_pane = pn.pane.Plotly(damage_plot)
+    outcome_plot_pane = pn.pane.Plotly(outcome_plot)
     
     # Create activity heatmap
     activity_df = filtered_data.groupby(['Day', 'Hour']).size().reset_index(name='Count')
@@ -264,9 +311,11 @@ def create_plots(operator, game_type, map_name, date_range):
         pn.Row(skill_plot_pane, kd_by_hour_pane),
         pn.Row(accuracy_hist_pane, kd_hist_pane),
         pn.Row(skill_hist_pane, metrics_plot_pane),
-        pn.Row(map_performance_pane, activity_heatmap_pane),
+        pn.Row(headshot_plot_pane, damage_plot_pane),
+        pn.Row(outcome_plot_pane, map_performance_pane),
+        pn.Row(activity_heatmap_pane),
         sizing_mode='stretch_width',
-        height=1300
+        height=1800
     )
     return layout
 
