@@ -16,7 +16,6 @@ data = pd.read_csv(csv_file)
 print(data.head())
 
 import datetime
-import zoneinfo
 
 # Convert UTC timestamps to local time and ensure proper timezone handling
 data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp']).dt.tz_localize('UTC')
