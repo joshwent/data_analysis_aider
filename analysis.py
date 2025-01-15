@@ -84,9 +84,9 @@ def create_stats(operator, game_type):
             pn.pane.Markdown(f"### Win Rate: {win_rate}%"),
         ),
         title='Statistics',
-        background='rgb(30, 30, 30)',
         css_classes=['stats-card'],
-        width=300
+        width=300,
+        styles={'background': 'rgb(30, 30, 30)'}
     )
 
 # Define CSS styles
