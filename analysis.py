@@ -354,7 +354,7 @@ def create_plots(operator, game_type, map_name, date_range):
     
     activity_heatmap_pane = pn.pane.Plotly(activity_heatmap)
     
-    # Create a responsive grid layout for plots
+    # Create a responsive grid layout for plots with fixed column widths
     layout = pn.GridBox(
         skill_plot_pane,
         kd_by_hour_pane,
@@ -368,11 +368,13 @@ def create_plots(operator, game_type, map_name, date_range):
         map_performance_pane,
         activity_heatmap_pane,
         ncols=2,
-        sizing_mode='stretch_width',
+        sizing_mode='fixed',
+        width=1200,
         styles={
             'grid-gap': '1rem',
             'padding': '1rem',
-            'background': 'var(--bg-dark)'
+            'background': 'var(--bg-dark)',
+            'margin': '0 auto'  # Center the grid
         }
     )
     return layout
