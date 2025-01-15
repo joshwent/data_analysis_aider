@@ -102,10 +102,14 @@ def create_plots(operator, game_type, map_name, date_range):
     skill_plot.update_traces(line_color='#00ff00', line_width=2)
     skill_plot.update_layout(template="plotly_dark")
     
-    # KD ratio by hour as a bar chart
+    # KD ratio by hour as a bar chart with 12-hour format
+    hourly_data = filtered_data.groupby('Hour')['KD_Ratio'].mean().reset_index()
+    hourly_data['Hour_12'] = hourly_data['Hour'].apply(
+        lambda x: f"{x if 0 < x < 12 else 12 if x == 12 else x-12} {'AM' if x < 12 else 'PM'}"
+    )
     kd_by_hour = px.bar(
-        filtered_data.groupby('Hour')['KD_Ratio'].mean().reset_index(),
-        x='Hour',
+        hourly_data,
+        x='Hour_12',
         y='KD_Ratio',
         title="Average K/D Ratio by Hour",
         height=300,
@@ -114,7 +118,8 @@ def create_plots(operator, game_type, map_name, date_range):
     kd_by_hour.update_layout(
         xaxis_title='Hour of Day',
         yaxis_title='Average K/D Ratio',
-        template="plotly_dark"
+        template="plotly_dark",
+        xaxis_tickangle=45
     )
     
     # Accuracy distribution (filtered)
@@ -189,9 +194,13 @@ def create_plots(operator, game_type, map_name, date_range):
     day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     activity_pivot = activity_pivot.reindex(day_order)
     
+    # Convert hour numbers to 12-hour format for heatmap
+    hour_labels = [f"{h if 0 < h < 12 else 12 if h == 12 else h-12} {'AM' if h < 12 else 'PM'}" 
+                  for h in activity_pivot.columns]
+    
     activity_heatmap = go.Figure(data=go.Heatmap(
         z=activity_pivot.values,
-        x=activity_pivot.columns,
+        x=hour_labels,
         y=activity_pivot.index,
         colorscale='Viridis',
         hoverongaps=False
@@ -202,7 +211,8 @@ def create_plots(operator, game_type, map_name, date_range):
         xaxis_title='Hour of Day',
         yaxis_title='Day of Week',
         height=400,
-        template="plotly_dark"
+        template="plotly_dark",
+        xaxis_tickangle=45
     )
     
     activity_heatmap_pane = pn.pane.Plotly(activity_heatmap)
