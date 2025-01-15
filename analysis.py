@@ -386,18 +386,18 @@ def create_stats(operator, game_type, map_name, date_range):
     
     return pn.Card(
         pn.Column(
-            pn.pane.Markdown("### Performance Metrics", margin=(0,0,15,0), align='center'),
-            pn.pane.Markdown(f"**Skill Rating:** {avg_skill}", align='center'),
-            pn.pane.Markdown(f"**K/D Ratio:** {kd_ratio}", align='center'),
-            pn.pane.Markdown(f"**Win Rate:** {win_rate}%", align='center'),
-            pn.pane.Markdown(f"**Accuracy:** {accuracy}%", align='center'),
+            pn.pane.Markdown("### Performance Metrics", margin=(0,0,15,0), align='center', styles={'color': 'var(--accent-color)'}),
+            pn.pane.Markdown(f"**Skill Rating:** {avg_skill}", align='center', styles={'font-size': '1.1rem'}),
+            pn.pane.Markdown(f"**K/D Ratio:** {kd_ratio}", align='center', styles={'font-size': '1.1rem'}),
+            pn.pane.Markdown(f"**Win Rate:** {win_rate}%", align='center', styles={'font-size': '1.1rem'}),
+            pn.pane.Markdown(f"**Accuracy:** {accuracy}%", align='center', styles={'font-size': '1.1rem'}),
             pn.pane.Markdown("---", margin=(10,0), align='center'),
-            pn.pane.Markdown("### Kill Streaks", margin=(15,0,15,0), align='center'),
-            pn.pane.Markdown(f"**Best Streak:** {kill_streak}", align='center'),
+            pn.pane.Markdown("### Kill Streaks", margin=(15,0,15,0), align='center', styles={'color': 'var(--accent-color)'}),
+            pn.pane.Markdown(f"**Best Streak:** {kill_streak}", align='center', styles={'font-size': '1.1rem'}),
             pn.pane.Markdown("---", margin=(10,0), align='center'),
-            pn.pane.Markdown("### Time Stats", margin=(15,0,15,0), align='center'),
-            pn.pane.Markdown(f"**Kills/min:** {kills_per_min}", align='center'),
-            pn.pane.Markdown(f"**Total Time:** {total_time}m", align='center'),
+            pn.pane.Markdown("### Time Stats", margin=(15,0,15,0), align='center', styles={'color': 'var(--accent-color)'}),
+            pn.pane.Markdown(f"**Kills/min:** {kills_per_min}", align='center', styles={'font-size': '1.1rem'}),
+            pn.pane.Markdown(f"**Total Time:** {total_time}m", align='center', styles={'font-size': '1.1rem'}),
         ),
         title='Performance Summary',
         css_classes=['stats-card'],
@@ -413,68 +413,146 @@ def create_stats(operator, game_type, map_name, date_range):
 
 # Define CSS styles
 css = """
+:root {
+    --primary-color: #4A90E2;
+    --accent-color: #5CD9A6;
+    --bg-dark: #1A1A1A;
+    --bg-card: #242424;
+    --bg-hover: #2A2A2A;
+    --text-primary: #FFFFFF;
+    --text-secondary: #B3B3B3;
+    --border-color: #333333;
+}
+
+body {
+    background-color: var(--bg-dark) !important;
+    color: var(--text-primary) !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
 .dashboard-title {
-    color: #00ff88;
-    font-size: 32px;
-    margin-bottom: 20px;
+    color: var(--accent-color);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 2rem 0;
     text-align: center;
-    text-shadow: 0 0 10px rgba(0,255,136,0.3);
+    letter-spacing: -0.5px;
 }
 
 .bk-accordion {
-    background: rgb(20, 20, 20) !important;
-    border-radius: 8px !important;
-    border: 1px solid #444 !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+    background: var(--bg-card) !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    overflow: hidden !important;
 }
 
 .bk-accordion-header {
-    background: rgb(25, 25, 25) !important;
-    border-radius: 8px !important;
-    padding: 10px !important;
-    color: #00ff88 !important;
+    background: var(--bg-card) !important;
+    padding: 1rem !important;
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
     border: none !important;
+    transition: all 0.2s ease !important;
 }
 
 .bk-accordion-header:hover {
-    background: rgb(35, 35, 35) !important;
+    background: var(--bg-hover) !important;
 }
 
 .bk-accordion-header.active {
-    background: rgb(30, 30, 30) !important;
-    border-bottom: 2px solid #00ff88 !important;
+    background: var(--bg-hover) !important;
+    border-bottom: 2px solid var(--primary-color) !important;
 }
 
 .bk-accordion button:before {
-    border-color: #00ff88 !important;
-    opacity: 0.8 !important;
+    border-color: var(--primary-color) !important;
+    opacity: 1 !important;
 }
 
 .bk-accordion-content {
-    background: rgb(20, 20, 20) !important;
+    background: var(--bg-card) !important;
     border: none !important;
+    padding: 1rem !important;
 }
 
 .bk-checkbox-group {
-    margin: 10px !important;
+    margin: 0.5rem !important;
+    padding: 0.5rem !important;
+}
+
+.bk-checkbox-group label {
+    color: var(--text-secondary) !important;
+    font-size: 0.9rem !important;
+    margin: 0.25rem 0 !important;
 }
 
 .bk-input {
-    background: rgb(40, 40, 40) !important;
-    border: 1px solid #444 !important;
-    border-radius: 4px !important;
-    color: white !important;
+    background: var(--bg-hover) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    color: var(--text-primary) !important;
+    padding: 0.75rem !important;
+    transition: all 0.2s ease !important;
 }
 
 .bk-input:focus {
-    border-color: #00ff88 !important;
-    box-shadow: 0 0 0 1px #00ff88 !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2) !important;
+}
+
+.stats-card {
+    background: var(--bg-card) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    transition: transform 0.2s ease !important;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px) !important;
 }
 
 .stats-card .bk-card-header {
-    background: rgb(40, 40, 40) !important;
-    border-bottom: 1px solid #444 !important;
-    color: #00ff88 !important;
+    background: var(--bg-hover) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--primary-color) !important;
+    font-weight: 600 !important;
+    padding: 1rem !important;
+}
+
+.stats-card .markdown {
+    padding: 0.5rem 1rem !important;
+}
+
+.stats-card .markdown h3 {
+    color: var(--accent-color) !important;
+    font-size: 1.1rem !important;
+    margin: 1rem 0 0.5rem !important;
+}
+
+.stats-card .markdown strong {
+    color: var(--text-primary) !important;
+}
+
+/* Plot styling */
+.plot-container {
+    background: var(--bg-card) !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    margin: 0.5rem !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.js-plotly-plot .plotly .main-svg {
+    background: var(--bg-card) !important;
+}
+
+.js-plotly-plot .plotly .modebar {
+    background: transparent !important;
+}
+
+.js-plotly-plot .plotly .modebar-btn path {
+    fill: var(--text-secondary) !important;
 }
 """
 
