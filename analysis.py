@@ -24,6 +24,11 @@ data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
 
 print(data.columns)
 
+# Create "Select All" checkboxes
+operator_all = pn.widgets.Checkbox(name='Select All Operators', value=False, width=200)
+game_type_all = pn.widgets.Checkbox(name='Select All Game Types', value=False, width=200)
+map_all = pn.widgets.Checkbox(name='Select All Maps', value=False, width=200)
+
 # Create filter widgets with checkboxes
 operator_select = pn.widgets.CheckBoxGroup(
     name='Operators',
@@ -48,6 +53,21 @@ map_select = pn.widgets.CheckBoxGroup(
     inline=False,
     width=200
 )
+
+# Define callback functions for "Select All" checkboxes
+def update_operator_select(event):
+    operator_select.value = list(data['Operator'].unique()) if event.new else []
+
+def update_game_type_select(event):
+    game_type_select.value = list(data['Game Type'].unique()) if event.new else []
+
+def update_map_select(event):
+    map_select.value = list(data['Map'].unique()) if event.new else []
+
+# Link callbacks to "Select All" checkboxes
+operator_all.param.watch(update_operator_select, 'value')
+game_type_all.param.watch(update_game_type_select, 'value')
+map_all.param.watch(update_map_select, 'value')
 
 date_range = pn.widgets.DatetimeRangePicker(
     name='Date Range',
@@ -394,8 +414,11 @@ dashboard = pn.Column(
     pn.pane.HTML("<h1 class='dashboard-title'>Gaming Performance Dashboard</h1>", stylesheets=[css]),
     pn.Row(
         pn.Column(
+            operator_all,
             operator_select,
+            game_type_all,
             game_type_select,
+            map_all,
             map_select,
             date_range,
             create_stats,
