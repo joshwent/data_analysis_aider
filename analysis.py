@@ -612,7 +612,7 @@ dashboard.sidebar.append(
         pn.pane.Markdown("## Filters", styles={'color': 'var(--text-primary)', 'margin-bottom': '1rem'}),
         filter_accordion,
         date_range,
-        background='var(--bg-card)',
+        styles={'background': 'var(--bg-card)'},
         margin=(0, 10),
         sizing_mode='stretch_width'
     )
@@ -625,7 +625,7 @@ dashboard.main.append(
         pn.layout.Divider(margin=(20, 0)),
         create_plots,
         sizing_mode='stretch_width',
-        background='var(--bg-dark)',
+        styles={'background': 'var(--bg-dark)'},
         margin=(0, 20)
     )
 )
