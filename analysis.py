@@ -58,9 +58,12 @@ def create_plots(operator, game_type):
         color='red'
     )
     
+    # Calculate accuracy first
+    filtered_data['Accuracy'] = (filtered_data['Hits'] / (filtered_data['Hits'] + filtered_data['Lifetime Misses'])).round(3)
+    
     accuracy_plot = filtered_data.hvplot.bar(
         'Game Type',
-        (filtered_data['Hits'] / (filtered_data['Hits'] + filtered_data['Lifetime Misses'])).round(3),
+        'Accuracy',
         title="Accuracy by Game Type",
         height=300,
         color='green'
