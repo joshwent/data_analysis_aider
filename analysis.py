@@ -141,17 +141,15 @@ def create_plots(operator, game_type, map_name, date_range):
         x='Local Time',
         y='Skill',
         title="Skill Progression Over Time",
-        height=300
+        height=300,
+        width=600,
+        color_discrete_sequence=['#5B9AFF']
     )
-    skill_plot.update_traces(line_color='#5B9AFF', line_width=2)
+    skill_plot.update_traces(line_width=2)
     skill_plot.update_layout(
         template="plotly_dark",
-        plot_bgcolor='rgba(24, 27, 31, 0.8)',
-        paper_bgcolor='rgba(24, 27, 31, 0.8)',
-        margin=dict(l=40, r=20, t=40, b=40),
-        title_x=0.5,
-        title_font=dict(size=16),
-        font=dict(family="Roboto", size=12, color="#D8D9DA")
+        xaxis_title='Time',
+        yaxis_title='Skill Rating'
     )
     
     # KD ratio by hour as a bar chart with 12-hour format
@@ -400,31 +398,50 @@ def create_stats(operator, game_type, map_name, date_range):
     total_time = filtered_data['Lifetime Time Played'].sum()
     kills_per_min = (total_kills / total_time * 60).round(2)
     
-    return pn.Card(
-        pn.GridBox(
-            pn.pane.Markdown("### Performance Summary", margin=(0,0,10,0), styles={'color': 'var(--accent-color)', 'font-size': '1.4rem', 'grid-column': 'span 4'}),
-            
-            # Performance metrics in a row
-            pn.pane.Markdown(f"**Skill Rating**\n{avg_skill}", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**K/D Ratio**\n{kd_ratio}", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**Win Rate**\n{win_rate}%", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**Accuracy**\n{accuracy}%", align='center', styles={'font-size': '1.1rem'}),
-            
-            # Additional stats in a row
-            pn.pane.Markdown(f"**Best Streak**\n{kill_streak}", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**Kills/min**\n{kills_per_min}", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**Total Time**\n{total_time}m", align='center', styles={'font-size': '1.1rem'}),
-            
-            ncols=4,
-            sizing_mode='stretch_width'
-        ),
-        css_classes=['stats-card'],
+    # Create a grid of stat cards
+    stat_cards = []
+    stats = [
+        ("Skill Rating", avg_skill, "🎯"),
+        ("K/D Ratio", kd_ratio, "⚔️"),
+        ("Win Rate", f"{win_rate}%", "🏆"),
+        ("Accuracy", f"{accuracy}%", "🎯"),
+        ("Best Streak", kill_streak, "🔥"),
+        ("Kills/min", kills_per_min, "⚡"),
+        ("Total Time", f"{total_time}m", "⏱️")
+    ]
+    
+    for title, value, icon in stats:
+        stat_cards.append(
+            pn.Card(
+                pn.Column(
+                    pn.pane.Markdown(f"# {icon}", align='center', styles={'font-size': '2rem', 'margin': '0'}),
+                    pn.pane.Markdown(f"### {title}", align='center', styles={'margin': '0.5rem 0'}),
+                    pn.pane.Markdown(f"## {value}", align='center', styles={'color': 'var(--accent-color)', 'margin': '0'}),
+                    sizing_mode='stretch_width',
+                    styles={'text-align': 'center'}
+                ),
+                styles={
+                    'background': 'var(--bg-card)',
+                    'border': '1px solid var(--border-color)',
+                    'border-radius': '12px',
+                    'padding': '1rem',
+                    'margin': '0.5rem',
+                    'box-shadow': '0 4px 6px rgba(0,0,0,0.1)'
+                },
+                sizing_mode='stretch_width'
+            )
+        )
+    
+    return pn.GridBox(
+        *stat_cards,
+        ncols=4,
+        sizing_mode='stretch_width',
         styles={
-            'background': 'rgb(30, 30, 30)',
-            'color': 'white',
-            'border': '1px solid #444',
-            'border-radius': '8px',
-            'box-shadow': '0 2px 4px rgba(0,0,0,0.2)'
+            'grid-gap': '1rem',
+            'padding': '1rem',
+            'background': 'var(--bg-dark)',
+            'border-radius': '12px',
+            'margin-bottom': '2rem'
         }
     )
 
