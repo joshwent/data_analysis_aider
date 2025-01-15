@@ -98,17 +98,14 @@ def create_plots(operator, game_type):
     )
     
     # Combine plots in a grid layout
-    return pn.GridSpec(
-        height=1000,
-        ncols=2,
-        sizing_mode='stretch_width'
-    )[
-        (0, 0): skill_plot,
-        (0, 1): kd_by_hour,
-        (1, 0): accuracy_hist,
-        (1, 1): metrics_plot,
-        (2, slice(0, 2)): top_maps
-    ]
+    layout = pn.Column(
+        pn.Row(skill_plot, kd_by_hour),
+        pn.Row(accuracy_hist, metrics_plot),
+        top_maps,
+        sizing_mode='stretch_width',
+        height=1000
+    )
+    return layout
 
 # Create stats cards
 @pn.depends(operator_select, game_type_select)
