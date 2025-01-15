@@ -86,13 +86,23 @@ def create_stats(operator, game_type):
         width=300
     )
 
+# Define CSS styles
+css = """
+.dashboard-title {
+    color: #FF5733;
+    font-size: 32px;
+    margin-bottom: 20px;
+}
+"""
+
 # Layout the dashboard
 dashboard = pn.Column(
-    pn.pane.Markdown("# Gaming Performance Dashboard", style={'color': '#FF5733'}),
+    pn.pane.HTML("<h1 class='dashboard-title'>Gaming Performance Dashboard</h1>", styles=dict(background="none")),
     pn.Row(
         pn.Column(operator_select, game_type_select, create_stats),
         create_plots
-    )
+    ),
+    css=css
 )
 
 # Serve the dashboard
