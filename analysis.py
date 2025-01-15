@@ -31,18 +31,57 @@ game_type_select = pn.widgets.Select(
     value='All'
 )
 
+map_select = pn.widgets.Select(
+    name='Map',
+    options=['All'] + list(data['Map'].unique()),
+    value='All'
+)
+
+date_range = pn.widgets.DateRangeSlider(
+    name='Date Range',
+    start=data['UTC Timestamp'].min(),
+    end=data['UTC Timestamp'].max(),
+    value=(data['UTC Timestamp'].min(), data['UTC Timestamp'].max())
+)
+
+kd_range = pn.widgets.RangeSlider(
+    name='K/D Ratio Range',
+    start=0,
+    end=5,
+    value=(0, 5),
+    step=0.1
+)
+
 # Create plots using hvPlot
-def get_filtered_data(operator, game_type):
+def get_filtered_data(operator, game_type, map_name, date_range, kd_range):
     filtered = data.copy()
+    
+    # Basic filters
     if operator != 'All':
         filtered = filtered[filtered['Operator'] == operator]
     if game_type != 'All':
         filtered = filtered[filtered['Game Type'] == game_type]
+    if map_name != 'All':
+        filtered = filtered[filtered['Map'] == map_name]
+    
+    # Date range filter
+    filtered = filtered[
+        (filtered['UTC Timestamp'] >= pd.Timestamp(date_range[0])) &
+        (filtered['UTC Timestamp'] <= pd.Timestamp(date_range[1]))
+    ]
+    
+    # Calculate and filter by KD ratio
+    filtered['KD_Ratio'] = filtered['Kills'] / filtered['Deaths']
+    filtered = filtered[
+        (filtered['KD_Ratio'] >= kd_range[0]) &
+        (filtered['KD_Ratio'] <= kd_range[1])
+    ]
+    
     return filtered
 
-@pn.depends(operator_select, game_type_select)
-def create_plots(operator, game_type):
-    filtered_data = get_filtered_data(operator, game_type)
+@pn.depends(operator_select, game_type_select, map_select, date_range, kd_range)
+def create_plots(operator, game_type, map_name, date_range, kd_range):
+    filtered_data = get_filtered_data(operator, game_type, map_name, date_range, kd_range)
     
     # Calculate metrics
     filtered_data['Accuracy'] = (filtered_data['Hits'] / filtered_data['Shots']).round(3)
@@ -108,9 +147,9 @@ def create_plots(operator, game_type):
     return layout
 
 # Create stats cards
-@pn.depends(operator_select, game_type_select)
-def create_stats(operator, game_type):
-    filtered_data = get_filtered_data(operator, game_type)
+@pn.depends(operator_select, game_type_select, map_select, date_range, kd_range)
+def create_stats(operator, game_type, map_name, date_range, kd_range):
+    filtered_data = get_filtered_data(operator, game_type, map_name, date_range, kd_range)
     
     # Calculate basic stats
     avg_skill = filtered_data['Skill'].mean().round(2)
@@ -165,7 +204,14 @@ css = """
 dashboard = pn.Column(
     pn.pane.HTML("<h1 class='dashboard-title'>Gaming Performance Dashboard</h1>", stylesheets=[css]),
     pn.Row(
-        pn.Column(operator_select, game_type_select, create_stats),
+        pn.Column(
+            operator_select,
+            game_type_select,
+            map_select,
+            date_range,
+            kd_range,
+            create_stats
+        ),
         create_plots
     )
 )
