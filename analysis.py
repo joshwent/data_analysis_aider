@@ -1,7 +1,8 @@
 import pandas as pd
 import panel as pn
-import hvplot.pandas
-import holoviews as hv
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # Enable Panel extension with a modern theme
 pn.extension(sizing_mode="stretch_width")
@@ -78,23 +79,29 @@ def create_plots(operator, game_type, map_name, date_range):
     filtered_data['Hour'] = filtered_data['UTC Timestamp'].dt.hour
     
     # Skill progression over time
-    skill_plot = filtered_data.hvplot.line(
-        x='UTC Timestamp', 
+    skill_plot = px.line(
+        filtered_data,
+        x='UTC Timestamp',
         y='Skill',
         title="Skill Progression Over Time",
-        line_width=2,
-        height=300,
-        grid=True,
-        color='#00ff00'
+        height=300
     )
+    skill_plot.update_traces(line_color='#00ff00', line_width=2)
+    skill_plot.update_layout(template="plotly_dark")
     
     # KD ratio by hour as a bar chart
-    kd_by_hour = filtered_data.groupby('Hour')['KD_Ratio'].mean().hvplot.bar(
+    kd_by_hour = px.bar(
+        filtered_data.groupby('Hour')['KD_Ratio'].mean().reset_index(),
+        x='Hour',
+        y='KD_Ratio',
         title="Average K/D Ratio by Hour",
         height=300,
-        color='#00ff00',
-        xlabel='Hour of Day',
-        ylabel='Average K/D Ratio'
+        color_discrete_sequence=['#00ff00']
+    )
+    kd_by_hour.update_layout(
+        xaxis_title='Hour of Day',
+        yaxis_title='Average K/D Ratio',
+        template="plotly_dark"
     )
     
     # Accuracy distribution (filtered)
@@ -103,25 +110,30 @@ def create_plots(operator, game_type, map_name, date_range):
         (filtered_data['Accuracy'] <= 1) & 
         (filtered_data['Shots'] > 0)
     ]
-    accuracy_hist = valid_accuracy.hvplot.hist(
-        'Accuracy',
-        bins=30,
+    accuracy_hist = px.histogram(
+        valid_accuracy,
+        x='Accuracy',
+        nbins=30,
         title="Accuracy Distribution",
         height=300,
-        color='orange',
-        xlabel='Accuracy %',
-        ylabel='Number of Matches'
+        color_discrete_sequence=['orange']
+    )
+    accuracy_hist.update_layout(
+        xaxis_title='Accuracy %',
+        yaxis_title='Number of Matches',
+        template="plotly_dark"
     )
     
     # Performance metrics over time
-    metrics_plot = filtered_data.hvplot.line(
+    metrics_plot = px.line(
+        filtered_data,
         x='UTC Timestamp',
         y=['KD_Ratio', 'Accuracy'],
         title="Performance Metrics Over Time",
-        height=300,
-        grid=True,
-        line_width=2
+        height=300
     )
+    metrics_plot.update_traces(line_width=2)
+    metrics_plot.update_layout(template="plotly_dark")
     
     # Map K/D performance
     map_stats = (filtered_data.groupby('Map')
@@ -134,23 +146,33 @@ def create_plots(operator, game_type, map_name, date_range):
     # Sort by KD ratio
     map_stats = map_stats.sort_values('KD', ascending=True)
     
-    map_performance = map_stats.hvplot.bar(
-        'Map',
-        'KD',
+    map_performance = px.bar(
+        map_stats,
+        x='Map',
+        y='KD',
         title="K/D Ratio by Map",
         height=400,
-        width=800,
-        color='purple',
-        xlabel='Map',
-        ylabel='K/D Ratio',
-        rot=45
+        color_discrete_sequence=['purple']
     )
+    map_performance.update_layout(
+        xaxis_title='Map',
+        yaxis_title='K/D Ratio',
+        template="plotly_dark",
+        xaxis_tickangle=45
+    )
+    
+    # Convert Plotly figures to Panel panes
+    skill_plot_pane = pn.pane.Plotly(skill_plot)
+    kd_by_hour_pane = pn.pane.Plotly(kd_by_hour)
+    accuracy_hist_pane = pn.pane.Plotly(accuracy_hist)
+    metrics_plot_pane = pn.pane.Plotly(metrics_plot)
+    map_performance_pane = pn.pane.Plotly(map_performance)
     
     # Combine plots in a grid layout
     layout = pn.Column(
-        pn.Row(skill_plot, kd_by_hour),
-        pn.Row(accuracy_hist, metrics_plot),
-        map_performance,
+        pn.Row(skill_plot_pane, kd_by_hour_pane),
+        pn.Row(accuracy_hist_pane, metrics_plot_pane),
+        map_performance_pane,
         sizing_mode='stretch_width',
         height=1000
     )
