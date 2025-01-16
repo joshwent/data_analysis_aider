@@ -151,9 +151,10 @@ def clear_plot_refs():
     """Clear stored plot references"""
     global _plot_refs
     _plot_refs.clear()
+    pn.state.curdoc.clear()  # Clear document state
 
 @pn.depends(operator_select.param.value, game_type_select.param.value, 
-            map_select.param.value, date_range.param.value, watch=True)
+            map_select.param.value, date_range.param.value, watch=False)
 def create_plots(operator, game_type, map_name, date_range):
     # Clear old references
     clear_plot_refs()
@@ -417,7 +418,7 @@ def create_plots(operator, game_type, map_name, date_range):
 
 # Create stats cards
 @pn.depends(operator_select.param.value, game_type_select.param.value,
-            map_select.param.value, date_range.param.value, watch=True)
+            map_select.param.value, date_range.param.value, watch=False)
 def create_stats(operator, game_type, map_name, date_range):
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
