@@ -5,7 +5,8 @@ import plotly.graph_objects as go
 from datetime import datetime
 from config import *
 
-pn.extension('plotly', css_files=['styles.css'])
+import os
+pn.extension('plotly', css_files=[os.path.join(os.path.dirname(__file__), 'styles.css')])
 
 # Load and process data once
 print(f"Loading data from data.csv...")
@@ -127,22 +128,9 @@ def get_filtered_data(operators, game_types, maps, date_range):
 _plot_refs = {}
 
 def clear_plot_refs():
-    """Clear stored plot references and clean up memory"""
-    try:
-        global _plot_refs
-        if _plot_refs:
-            for ref in _plot_refs.values():
-                if hasattr(ref, 'object') and hasattr(ref.object, 'data'):
-                    ref.object.data = []  # Clear plot data
-            _plot_refs.clear()
-        
-        if pn.state.curdoc is not None:
-            for root in pn.state.curdoc.roots:
-                if hasattr(root, 'children'):
-                    root.children = []  # Clear children
-            pn.state.curdoc.clear()
-    except Exception as e:
-        logger.error(f"Error clearing plot references: {e}")
+    """Clear stored plot references"""
+    global _plot_refs
+    _plot_refs.clear()
 
 @pn.depends(operator_select.param.value, game_type_select.param.value, 
             map_select.param.value, date_range.param.value, watch=False)
