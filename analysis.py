@@ -159,10 +159,10 @@ def clear_plot_refs():
 def create_plots(operator, game_type, map_name, date_range):
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
-    # Only clear references if we have valid filtered data
-    if not filtered_data.empty:
-        clear_plot_refs()
-    else:
+    # Always clear references before creating new plots
+    clear_plot_refs()
+    
+    if filtered_data.empty:
         return pn.Column(
             pn.pane.Markdown("No data matches the selected filters."),
             styles={'color': 'var(--text-secondary)', 'text-align': 'center', 'padding': '2rem'}
@@ -431,18 +431,26 @@ def create_stats(operator, game_type, map_name, date_range):
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
     # Calculate basic stats with error handling
-    try:
-        avg_skill = filtered_data['Skill'].mean().round(2) if not filtered_data.empty else 0
-        total_kills = filtered_data['Kills'].sum()
-        total_deaths = max(filtered_data['Deaths'].sum(), 1)  # Prevent division by zero
-        kd_ratio = (total_kills / total_deaths).round(2)
-        win_rate = (filtered_data['Match Outcome'].str.lower() == 'win').mean().round(3) * 100
-        total_shots = filtered_data['Shots'].sum()
-        accuracy = (filtered_data['Hits'].sum() / max(total_shots, 1)).round(3) * 100
-        avg_score = filtered_data['Score'].mean().round(0) if not filtered_data.empty else 0
-    except Exception as e:
-        print(f"Error calculating stats: {e}")
-        avg_skill, kd_ratio, win_rate, accuracy, avg_score = 0, 0, 0, 0, 0
+    if filtered_data.empty:
+        return pn.Row(
+            pn.pane.Markdown("No data matches the selected filters.", styles={
+                'color': 'var(--text-secondary)',
+                'text-align': 'center',
+                'padding': '2rem',
+                'width': '100%'
+            })
+        )
+
+    # Calculate stats safely
+    avg_skill = round(float(filtered_data['Skill'].mean() or 0), 2)
+    total_kills = int(filtered_data['Kills'].sum() or 0)
+    total_deaths = max(int(filtered_data['Deaths'].sum() or 1), 1)  # Ensure minimum 1
+    kd_ratio = round(total_kills / total_deaths, 2)
+    win_rate = round(100 * float((filtered_data['Match Outcome'].str.lower() == 'win').mean() or 0), 1)
+    total_shots = int(filtered_data['Shots'].sum() or 1)
+    total_hits = int(filtered_data['Hits'].sum() or 0)
+    accuracy = round(100 * total_hits / max(total_shots, 1), 1)
+    avg_score = round(float(filtered_data['Score'].mean() or 0), 0)
     
     # Calculate streaks
     kill_streak = filtered_data['Longest Streak'].max()
