@@ -745,9 +745,7 @@ dashboard = pn.template.FastListTemplate(
     header_color="#D8D9DA",
     theme="dark",
     theme_toggle=False,
-    main_max_width="1400px",
-    loading_spinner=True,
-    prevent_collision=True
+    main_max_width="1400px"
 )
 
 # Pre-calculate common data
