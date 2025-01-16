@@ -121,7 +121,7 @@ date_range = pn.widgets.DatetimeRangePicker(
 )
 
 # Create plots using hvPlot
-@pn.cache(ttl=CACHE_TTL)
+@pn.cache(ttl=CACHE_TTL, shared=True)
 @lru_cache(maxsize=CACHE_SIZE)
 def get_filtered_data(operators, game_types, maps, date_range):
     """
@@ -476,7 +476,7 @@ def create_stats(operator, game_type, map_name, date_range):
     
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
-    # Calculate basic stats with error handling
+    # Use pre-calculated metrics for better performance
     if filtered_data.empty:
         return pn.Row(
             pn.pane.Markdown("No data matches the selected filters.", styles={
@@ -487,16 +487,19 @@ def create_stats(operator, game_type, map_name, date_range):
             })
         )
 
-    # Calculate stats safely
-    avg_skill = round(float(filtered_data['Skill'].mean() or 0), 2)
-    total_kills = int(filtered_data['Kills'].sum() or 0)
-    total_deaths = max(int(filtered_data['Deaths'].sum() or 1), 1)  # Ensure minimum 1
-    kd_ratio = round(total_kills / total_deaths, 2)
-    win_rate = round(100 * float((filtered_data['Match Outcome'].str.lower() == 'win').mean() or 0), 1)
-    total_shots = int(filtered_data['Shots'].sum() or 1)
-    total_hits = int(filtered_data['Hits'].sum() or 0)
-    accuracy = round(100 * total_hits / max(total_shots, 1), 1)
-    avg_score = round(float(filtered_data['Score'].mean() or 0), 0)
+    # Calculate aggregated stats using vectorized operations
+    stats = {
+        'avg_skill': filtered_data['Skill'].mean(),
+        'kd_ratio': filtered_data['KD_Ratio'].mean(),
+        'win_rate': 100 * filtered_data['Match_Won'].mean(),
+        'accuracy': 100 * filtered_data['Accuracy'].mean(),
+        'kill_streak': filtered_data['Longest Streak'].max(),
+        'kills_per_min': filtered_data['Kills'].sum() / filtered_data['Lifetime_Minutes'].sum() * 60,
+        'total_time': filtered_data['Lifetime_Minutes'].sum()
+    }
+    
+    # Round values
+    stats = {k: round(float(v or 0), 2) for k, v in stats.items()}
     
     # Calculate streaks
     kill_streak = filtered_data['Longest Streak'].max()
@@ -559,11 +562,14 @@ dashboard = pn.template.FastListTemplate(
     theme=THEME
 )
 
-# Pre-calculate common data efficiently
+# Pre-calculate all common metrics once at load time
 data['Hour'] = data['Local Time'].dt.hour
 data['Day'] = data['Local Time'].dt.day_name()
 data['Accuracy'] = (data['Hits'] / data['Shots'].replace(0, 1)).clip(0, 1)
 data['KD_Ratio'] = data['Kills'] / data['Deaths'].replace(0, 1)
+data['Headshot_Ratio'] = (data['Headshots'] / data['Kills']).fillna(0)
+data['Match_Won'] = data['Match Outcome'].str.lower() == 'win'
+data['Lifetime_Minutes'] = data['Lifetime Time Played']
 
 # Add components to the sidebar
 # Create a sidebar container with proper sizing
