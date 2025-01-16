@@ -398,66 +398,34 @@ def create_stats(operator, game_type, map_name, date_range):
     total_time = filtered_data['Lifetime Time Played'].sum()
     kills_per_min = (total_kills / total_time * 60).round(2)
     
-    # Create a grid of stat cards
-    stat_cards = []
-    stats = [
-        ("SKILL", avg_skill, "var(--primary-color)"),
-        ("K/D", kd_ratio, "var(--accent-color)"),
-        ("WIN RATE", f"{win_rate}%", "var(--success-color)"),
-        ("ACCURACY", f"{accuracy}%", "var(--warning-color)"),
-        ("STREAK", kill_streak, "var(--danger-color)"),
-        ("KILLS/MIN", kills_per_min, "var(--primary-color)"),
-        ("PLAYTIME", f"{total_time}m", "var(--accent-color)")
-    ]
-    
-    for title, value, color in stats:
-        stat_cards.append(
-            pn.Card(
-                pn.Column(
-                    pn.pane.Markdown(f"## {value}", align='center', 
-                        styles={
-                            'color': color,
-                            'font-size': '24px',
-                            'font-weight': '600',
-                            'margin': '0 0 4px 0',
-                            'font-family': 'Inter, sans-serif'
-                        }
-                    ),
-                    pn.pane.Markdown(f"{title}", align='center',
-                        styles={
-                            'color': 'var(--text-secondary)',
-                            'font-size': '12px',
-                            'font-weight': '500',
-                            'letter-spacing': '0.1em',
-                            'margin': '0'
-                        }
-                    ),
-                    sizing_mode='stretch_width',
-                    styles={'text-align': 'center'}
-                ),
-                styles={
-                    'background': 'var(--bg-card)',
-                    'border': '1px solid var(--border-color)',
-                    'border-radius': '8px',
-                    'padding': '12px 8px',
-                    'margin': '4px'
-                },
-                sizing_mode='stretch_width'
-            )
-        )
-    
-    return pn.GridBox(
-        *stat_cards,
-        ncols=7,
-        sizing_mode='stretch_width',
-        styles={
-            'grid-gap': '8px',
-            'padding': '8px',
-            'background': 'var(--bg-dark)',
-            'border-radius': '8px',
-            'margin-bottom': '16px'
-        }
+    # Create performance summary row
+    summary_row = pn.Row(
+        pn.pane.Markdown(
+            f"""
+            **SKILL** {avg_skill} | 
+            **K/D** {kd_ratio} | 
+            **WIN** {win_rate}% | 
+            **ACC** {accuracy}% | 
+            **STREAK** {kill_streak} | 
+            **K/MIN** {kills_per_min} | 
+            **TIME** {total_time}m
+            """,
+            styles={
+                'background': 'var(--bg-card)',
+                'border': '1px solid var(--border-color)',
+                'border-radius': '8px',
+                'padding': '12px 16px',
+                'margin': '4px',
+                'font-family': 'Inter, sans-serif',
+                'font-size': '14px',
+                'color': 'var(--text-primary)',
+                'text-align': 'center'
+            }
+        ),
+        sizing_mode='stretch_width'
     )
+    
+    return summary_row
 
 # Define CSS styles
 css = """
