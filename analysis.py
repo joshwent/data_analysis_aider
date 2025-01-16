@@ -1,6 +1,7 @@
 import pandas as pd
 import panel as pn
 import plotly.express as px
+import plotly.graph_objects as go
 from datetime import datetime
 from config import *
 
@@ -81,8 +82,6 @@ date_range = pn.widgets.DatetimeRangePicker(
 )
 
 # Create plots using hvPlot
-@pn.cache(ttl=CACHE_TTL)
-@lru_cache(maxsize=CACHE_SIZE)
 def get_filtered_data(operators, game_types, maps, date_range):
     """
     Filter data based on selected criteria. Results are cached to prevent redundant filtering.
@@ -425,7 +424,6 @@ def create_plots(operator, game_type, map_name, date_range):
     return layout
 
 # Create stats cards
-@pn.cache(ttl=CACHE_TTL)
 @pn.depends(operator_select.param.value, game_type_select.param.value,
             map_select.param.value, date_range.param.value, watch=False)
 def create_stats(operator, game_type, map_name, date_range):
