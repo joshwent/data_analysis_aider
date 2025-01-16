@@ -31,10 +31,24 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load and configure Panel styling
+import os
+import panel as pn
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import pandas as pd
+import numpy as np
+from functools import lru_cache
+
+# Configure Panel
+pn.extension('plotly')
 pn.config.sizing_mode = "stretch_width"
-pn.extension('plotly', raw_css=[css])
 pn.config.throttled = True
+
+# Load CSS
+with open('styles.css', 'r') as f:
+    css = f.read()
+pn.extension(raw_css=[css])
 
 # Load the CSV data
 csv_file = 'data.csv'
@@ -124,13 +138,14 @@ date_range = pn.widgets.DatetimeRangePicker(
 )
 
 # Create plots using hvPlot
-@pn.cache(ttl=300)  # Cache results for 5 minutes
+@pn.cache(ttl=60)  # Cache for 1 minute to balance freshness and performance
+@lru_cache(maxsize=128)  # Additional caching layer for repeated queries
 def get_filtered_data(operators, game_types, maps, date_range):
     """
     Filter data based on selected criteria. Results are cached to prevent redundant filtering.
     """
     try:
-        filtered = data.copy()
+        filtered = data.loc[:]  # Use .loc for efficient view
         
         # Apply filters efficiently
         if any([operators, game_types, maps]):
@@ -722,6 +737,7 @@ combined_css = css + additional_css
 pn.extension('plotly', raw_css=[combined_css])
 
 # Layout the dashboard
+# Initialize dashboard with optimized settings
 dashboard = pn.template.FastListTemplate(
     title="Gaming Performance Analytics",
     sidebar_width=300,
@@ -729,7 +745,18 @@ dashboard = pn.template.FastListTemplate(
     header_color="#D8D9DA",
     theme="dark",
     theme_toggle=False,
-    main_max_width="1400px"  # Limit maximum width of main content
+    main_max_width="1400px",
+    loading_spinner=True,
+    prevent_collision=True
+)
+
+# Pre-calculate common data
+data['Hour'] = data['Local Time'].dt.hour
+data['Day'] = data['Local Time'].dt.day_name()
+data['Accuracy'] = (data['Hits'] / data['Shots']).clip(0, 1)
+data['KD_Ratio'] = data.apply(
+    lambda row: row['Kills'] / max(row['Deaths'], 1),
+    axis=1
 )
 
 # Add components to the sidebar
