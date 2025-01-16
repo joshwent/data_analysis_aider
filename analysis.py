@@ -4,9 +4,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-# Enable Panel extension with a modern theme
-pn.extension(sizing_mode="stretch_width")
-pn.config.theme = 'dark'
+# Load and configure Panel styling
+pn.config.sizing_mode = "stretch_width"
+pn.extension(raw_css=[css])
 
 # Load the CSV data
 csv_file = 'data.csv'  # Replace with your CSV file path
@@ -66,9 +66,9 @@ filter_accordion = pn.Accordion(
     ('Game Types', game_type_group),
     ('Maps', map_group),
     width=250,
-    height=600,
+    min_height=400,
     active=[0],  # Open first panel by default
-    sizing_mode='stretch_width'
+    sizing_mode='stretch_height'
 )
 
 
@@ -452,8 +452,12 @@ def create_stats(operator, game_type, map_name, date_range):
     
     return summary_row
 
-# Define CSS styles
+# Define CSS styles as a Panel extension
+pn.extension(sizing_mode="stretch_width", css_files=[])
+pn.config.theme = 'dark'
+
 css = """
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 :root {
     --primary-color: #5B9AFF;
     --accent-color: #00D1B2;
@@ -649,30 +653,33 @@ dashboard = pn.template.FastListTemplate(
 )
 
 # Add components to the sidebar
-dashboard.sidebar.append(
-    pn.Column(
-        pn.pane.Markdown("## Filters", styles={'color': 'var(--text-primary)', 'margin-bottom': '1rem'}),
-        date_range,
-        filter_accordion,
-        styles={'background': 'var(--bg-card)', 'border-radius': '8px', 'padding': '1rem'},
-        margin=(0, 10),
-        width=300,
-        height=800,
-        sizing_mode='fixed'
-    )
+# Create a sidebar container with proper sizing
+sidebar_content = pn.Column(
+    pn.pane.Markdown("## Filters", styles={'color': 'var(--text-primary)', 'margin-bottom': '1rem'}),
+    date_range,
+    filter_accordion,
+    styles={'background': 'var(--bg-card)', 'border-radius': '8px', 'padding': '1rem'},
+    margin=(0, 10),
+    width=300,
+    sizing_mode='stretch_height'
 )
 
-# Main content area
-dashboard.main.append(
-    pn.Column(
-        create_stats,
-        pn.layout.Divider(margin=(20, 0)),
-        create_plots,
-        sizing_mode='stretch_width',
-        styles={'background': 'var(--bg-dark)'},
-        margin=(0, 20)
-    )
+# Add to sidebar with proper document handling
+dashboard.sidebar.clear()
+dashboard.sidebar.append(sidebar_content)
+
+# Main content area with proper document handling
+main_content = pn.Column(
+    create_stats,
+    pn.layout.Divider(margin=(20, 0)),
+    create_plots,
+    sizing_mode='stretch_width',
+    styles={'background': 'var(--bg-dark)'},
+    margin=(0, 20)
 )
 
-# Serve the dashboard
+dashboard.main.clear()
+dashboard.main.append(main_content)
+
+# Initialize the dashboard with a single document
 dashboard.show()
