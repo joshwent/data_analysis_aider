@@ -1,0 +1,11 @@
+.js-plotly-plot .plotly .main-svg {
+    background: var(--bg-card) !important;
+}
+
+.js-plotly-plot .plotly .modebar {
+    background: transparent !important;
+}
+
+.js-plotly-plot .plotly .modebar-btn path {
+    fill: var(--text-secondary) !important;
+}
