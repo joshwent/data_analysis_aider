@@ -208,6 +208,12 @@ def clear_plot_refs():
 @pn.depends(operator_select.param.value, game_type_select.param.value, 
             map_select.param.value, date_range.param.value, watch=False)
 def create_plots(operator, game_type, map_name, date_range):
+    # Convert lists to tuples for hashing
+    operator = tuple(operator) if isinstance(operator, list) else operator
+    game_type = tuple(game_type) if isinstance(game_type, list) else game_type
+    map_name = tuple(map_name) if isinstance(map_name, list) else map_name
+    date_range = tuple(date_range) if isinstance(date_range, list) else date_range
+    
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
     # Always clear references before creating new plots
