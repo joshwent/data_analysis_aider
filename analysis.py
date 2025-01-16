@@ -151,7 +151,8 @@ def clear_plot_refs():
     """Clear stored plot references"""
     global _plot_refs
     _plot_refs.clear()
-    pn.state.curdoc.clear()  # Clear document state
+    if pn.state.curdoc is not None:
+        pn.state.curdoc.clear()  # Clear document state
 
 @pn.depends(operator_select.param.value, game_type_select.param.value, 
             map_select.param.value, date_range.param.value, watch=False)
