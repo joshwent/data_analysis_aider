@@ -653,8 +653,8 @@ dashboard.sidebar.append(
     pn.Card(
         pn.Column(
             pn.pane.Markdown("## Filters", styles={'color': 'var(--text-primary)', 'margin-bottom': '1rem'}),
-            filter_accordion,
             date_range,
+            filter_accordion,
             styles={'background': 'var(--bg-card)'},
             margin=(0, 10),
             width=300,
