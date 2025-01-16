@@ -1,22 +1,10 @@
 import pandas as pd
 import panel as pn
 import plotly.express as px
-import datetime
-import logging
+from datetime import datetime
 from config import *
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Configure Panel
-pn.extension('plotly')
-pn.config.sizing_mode = "stretch_width"
-pn.config.throttled = True
-
-# Load CSS
-with open('styles.css', 'r') as f:
-    css = f.read()
-pn.extension(raw_css=[css])
+pn.extension('plotly', css_files=['styles.css'])
 
 # Load the CSV data
 csv_file = 'data.csv'
