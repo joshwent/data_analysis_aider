@@ -33,7 +33,8 @@ logger = logging.getLogger(__name__)
 
 # Load and configure Panel styling
 pn.config.sizing_mode = "stretch_width"
-pn.extension(raw_css=[css])
+pn.extension('plotly', raw_css=[css])
+pn.config.throttled = True
 
 # Load the CSV data
 csv_file = 'data.csv'
@@ -123,7 +124,7 @@ date_range = pn.widgets.DatetimeRangePicker(
 )
 
 # Create plots using hvPlot
-@pn.cache
+@pn.cache(ttl=300)  # Cache results for 5 minutes
 def get_filtered_data(operators, game_types, maps, date_range):
     """
     Filter data based on selected criteria. Results are cached to prevent redundant filtering.
@@ -716,8 +717,9 @@ body {
 }
 """
 
-# Update Panel extension with all CSS
-pn.extension(raw_css=[css, additional_css])
+# Update Panel extension with all CSS - combine CSS to avoid multiple loads
+combined_css = css + additional_css
+pn.extension('plotly', raw_css=[combined_css])
 
 # Layout the dashboard
 dashboard = pn.template.FastListTemplate(
@@ -727,7 +729,9 @@ dashboard = pn.template.FastListTemplate(
     header_color="#D8D9DA",
     theme="dark",
     theme_toggle=False,
-    main_max_width="1400px"  # Limit maximum width of main content
+    main_max_width="1400px",  # Limit maximum width of main content
+    loading_spinner=True,
+    busy_indicator=True
 )
 
 # Add components to the sidebar
