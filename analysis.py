@@ -157,9 +157,16 @@ def clear_plot_refs():
 @pn.depends(operator_select.param.value, game_type_select.param.value, 
             map_select.param.value, date_range.param.value, watch=False)
 def create_plots(operator, game_type, map_name, date_range):
-    # Clear old references
-    clear_plot_refs()
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
+    
+    # Only clear references if we have valid filtered data
+    if not filtered_data.empty:
+        clear_plot_refs()
+    else:
+        return pn.Column(
+            pn.pane.Markdown("No data matches the selected filters."),
+            styles={'color': 'var(--text-secondary)', 'text-align': 'center', 'padding': '2rem'}
+        )
     
     # Calculate metrics with proper handling of edge cases
     filtered_data['Accuracy'] = (filtered_data['Hits'] / filtered_data['Shots']).round(3)
