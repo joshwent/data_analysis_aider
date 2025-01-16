@@ -6,21 +6,12 @@ from config import *
 
 pn.extension('plotly', css_files=['styles.css'])
 
-def load_data(csv_file='data.csv'):
-    """Load and preprocess the CSV data"""
-    data = pd.read_csv(csv_file)
-    data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp'])
-    data['Local Time'] = data['UTC Timestamp'].dt.tz_localize('UTC').dt.tz_convert(None)
-    
-    # Pre-calculate metrics
-    data['Accuracy'] = (data['Hits'] / data['Shots']).clip(0, 1)
-    data['KD_Ratio'] = data['Kills'] / data['Deaths'].replace(0, 1)
-    data['Match_Won'] = data['Match Outcome'].str.lower() == 'win'
-    
-    return data
-
-# Load data
-data = load_data()
+# Load and process data once
+data = pd.read_csv('data.csv')
+data['Local Time'] = pd.to_datetime(data['UTC Timestamp'])
+data['Accuracy'] = (data['Hits'] / data['Shots']).clip(0, 1)
+data['KD_Ratio'] = data['Kills'] / data['Deaths'].replace(0, 1)
+data['Match_Won'] = data['Match Outcome'].str.lower() == 'win'
 
 # Create filter widgets with checkboxes
 def create_checkbox_group(name, options, width=220):
