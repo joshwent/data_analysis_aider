@@ -144,8 +144,19 @@ def get_filtered_data(operators, game_types, maps, date_range):
     
     return filtered
 
-@pn.depends(operator_select, game_type_select, map_select, date_range)
+# Store plot references
+_plot_refs = {}
+
+def clear_plot_refs():
+    """Clear stored plot references"""
+    global _plot_refs
+    _plot_refs.clear()
+
+@pn.depends(operator_select.param.value, game_type_select.param.value, 
+            map_select.param.value, date_range.param.value, watch=True)
 def create_plots(operator, game_type, map_name, date_range):
+    # Clear old references
+    clear_plot_refs()
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
     # Calculate metrics with proper handling of edge cases
@@ -337,17 +348,17 @@ def create_plots(operator, game_type, map_name, date_range):
         xaxis_tickangle=45
     )
     
-    # Convert Plotly figures to Panel panes
-    skill_plot_pane = pn.pane.Plotly(skill_plot)
-    kd_by_hour_pane = pn.pane.Plotly(kd_by_hour)
-    accuracy_hist_pane = pn.pane.Plotly(accuracy_hist)
-    kd_hist_pane = pn.pane.Plotly(kd_hist)
-    skill_hist_pane = pn.pane.Plotly(skill_hist)
-    metrics_plot_pane = pn.pane.Plotly(metrics_plot)
-    map_performance_pane = pn.pane.Plotly(map_performance)
-    headshot_plot_pane = pn.pane.Plotly(headshot_plot)
-    damage_plot_pane = pn.pane.Plotly(damage_plot)
-    outcome_plot_pane = pn.pane.Plotly(outcome_plot)
+    # Convert Plotly figures to Panel panes with stored references
+    _plot_refs['skill'] = pn.pane.Plotly(skill_plot)
+    _plot_refs['kd_hour'] = pn.pane.Plotly(kd_by_hour)
+    _plot_refs['accuracy'] = pn.pane.Plotly(accuracy_hist)
+    _plot_refs['kd_hist'] = pn.pane.Plotly(kd_hist)
+    _plot_refs['skill_hist'] = pn.pane.Plotly(skill_hist)
+    _plot_refs['metrics'] = pn.pane.Plotly(metrics_plot)
+    _plot_refs['map_perf'] = pn.pane.Plotly(map_performance)
+    _plot_refs['headshot'] = pn.pane.Plotly(headshot_plot)
+    _plot_refs['damage'] = pn.pane.Plotly(damage_plot)
+    _plot_refs['outcome'] = pn.pane.Plotly(outcome_plot)
     
     # Create activity heatmap
     activity_df = filtered_data.groupby(['Day', 'Hour']).size().reset_index(name='Count')
@@ -378,21 +389,21 @@ def create_plots(operator, game_type, map_name, date_range):
         xaxis_tickangle=45
     )
     
-    activity_heatmap_pane = pn.pane.Plotly(activity_heatmap)
+    _plot_refs['heatmap'] = pn.pane.Plotly(activity_heatmap)
     
     # Create a responsive grid layout for plots with fixed column widths
     layout = pn.GridBox(
-        skill_plot_pane,
-        kd_by_hour_pane,
-        accuracy_hist_pane,
-        kd_hist_pane,
-        skill_hist_pane,
-        metrics_plot_pane,
-        headshot_plot_pane,
-        damage_plot_pane,
-        outcome_plot_pane,
-        map_performance_pane,
-        activity_heatmap_pane,
+        _plot_refs['skill'],
+        _plot_refs['kd_hour'],
+        _plot_refs['accuracy'],
+        _plot_refs['kd_hist'],
+        _plot_refs['skill_hist'],
+        _plot_refs['metrics'],
+        _plot_refs['headshot'],
+        _plot_refs['damage'],
+        _plot_refs['outcome'],
+        _plot_refs['map_perf'],
+        _plot_refs['heatmap'],
         ncols=2,
         sizing_mode='stretch_width',
         styles={
@@ -405,7 +416,8 @@ def create_plots(operator, game_type, map_name, date_range):
     return layout
 
 # Create stats cards
-@pn.depends(operator_select, game_type_select, map_select, date_range)
+@pn.depends(operator_select.param.value, game_type_select.param.value,
+            map_select.param.value, date_range.param.value, watch=True)
 def create_stats(operator, game_type, map_name, date_range):
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
