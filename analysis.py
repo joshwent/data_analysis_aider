@@ -399,29 +399,42 @@ def create_stats(operator, game_type, map_name, date_range):
     kills_per_min = (total_kills / total_time * 60).round(2)
     
     # Create performance summary row
+    stats = [
+        ("SKILL", avg_skill, "var(--primary-color)"),
+        ("K/D", kd_ratio, "var(--accent-color)"),
+        ("WIN", f"{win_rate}%", "var(--success-color)"),
+        ("ACC", f"{accuracy}%", "var(--warning-color)"),
+        ("STREAK", kill_streak, "var(--danger-color)"),
+        ("K/MIN", kills_per_min, "var(--primary-color)"),
+        ("TIME", f"{total_time}m", "var(--accent-color)")
+    ]
+    
+    stat_elements = []
+    for label, value, color in stats:
+        stat_elements.append(
+            pn.pane.Markdown(
+                f"<div class='stat-label'>{label}</div><div class='stat-value' style='color: {color}'>{value}</div>",
+                styles={
+                    'display': 'inline-block',
+                    'padding': '0 24px',
+                    'text-align': 'center',
+                    'border-right': '1px solid var(--border-color)',
+                }
+            )
+        )
+    
     summary_row = pn.Row(
-        pn.pane.Markdown(
-            f"""
-            **SKILL** {avg_skill} | 
-            **K/D** {kd_ratio} | 
-            **WIN** {win_rate}% | 
-            **ACC** {accuracy}% | 
-            **STREAK** {kill_streak} | 
-            **K/MIN** {kills_per_min} | 
-            **TIME** {total_time}m
-            """,
-            styles={
-                'background': 'var(--bg-card)',
-                'border': '1px solid var(--border-color)',
-                'border-radius': '8px',
-                'padding': '12px 16px',
-                'margin': '4px',
-                'font-family': 'Inter, sans-serif',
-                'font-size': '14px',
-                'color': 'var(--text-primary)',
-                'text-align': 'center'
-            }
-        ),
+        *stat_elements,
+        styles={
+            'background': 'var(--bg-card)',
+            'border': '1px solid var(--border-color)',
+            'border-radius': '12px',
+            'padding': '16px',
+            'margin': '8px 0',
+            'box-shadow': '0 2px 4px rgba(0,0,0,0.1)',
+            'align-items': 'center',
+            'justify-content': 'center'
+        },
         sizing_mode='stretch_width'
     )
     
@@ -532,6 +545,21 @@ body {
 .bk-input:focus {
     border-color: var(--primary-color) !important;
     box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2) !important;
+}
+
+.stat-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    font-family: 'Inter', sans-serif;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
 }
 
 .stats-card {
