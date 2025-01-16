@@ -24,25 +24,36 @@ css = """
 }
 """
 
+import datetime
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Load and configure Panel styling
 pn.config.sizing_mode = "stretch_width"
 pn.extension(raw_css=[css])
 
 # Load the CSV data
-csv_file = 'data.csv'  # Replace with your CSV file path
-data = pd.read_csv(csv_file)
-
-# Inspect the data
-print(data.head())
-
-import datetime
-
-# Convert UTC timestamps to local time and ensure proper timezone handling
-data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp']).dt.tz_localize('UTC')
-local_tz = datetime.datetime.now().astimezone().tzinfo
-data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
-
-print(data.columns)
+csv_file = 'data.csv'
+try:
+    data = pd.read_csv(csv_file)
+    logger.info(f"Loaded {len(data)} rows from {csv_file}")
+    
+    # Convert timestamps once at load time
+    data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp']).dt.tz_localize('UTC')
+    local_tz = datetime.datetime.now().astimezone().tzinfo
+    data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
+    
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("Sample data:")
+        logger.debug(data.head())
+        logger.debug("\nColumns:")
+        logger.debug(data.columns)
+except Exception as e:
+    logger.error(f"Error loading data: {e}")
+    raise
 
 # Create filter widgets with checkboxes
 def create_checkbox_group(name, options, width=220):
@@ -112,47 +123,65 @@ date_range = pn.widgets.DatetimeRangePicker(
 )
 
 # Create plots using hvPlot
+@pn.cache
 def get_filtered_data(operators, game_types, maps, date_range):
-    filtered = data.copy()
-    
-    # Basic filters with checkbox lists
-    if operators:
-        filtered = filtered[filtered['Operator'].isin(operators)]
-    if game_types:
-        filtered = filtered[filtered['Game Type'].isin(game_types)]
-    if maps:
-        filtered = filtered[filtered['Map'].isin(maps)]
-    
-    # Date range filter with proper timezone handling
-    start_time = pd.Timestamp(date_range[0]).tz_localize(local_tz)
-    end_time = pd.Timestamp(date_range[1]).tz_localize(local_tz)
-    
-    # Ensure timestamps are in the correct timezone before comparison
-    filtered = filtered[
-        (filtered['Local Time'] >= start_time) &
-        (filtered['Local Time'] <= end_time)
-    ]
+    """
+    Filter data based on selected criteria. Results are cached to prevent redundant filtering.
+    """
+    try:
+        filtered = data.copy()
+        
+        # Apply filters efficiently
+        if any([operators, game_types, maps]):
+            mask = pd.Series(True, index=filtered.index)
+            if operators:
+                mask &= filtered['Operator'].isin(operators)
+            if game_types:
+                mask &= filtered['Game Type'].isin(game_types)
+            if maps:
+                mask &= filtered['Map'].isin(maps)
+            filtered = filtered[mask]
+        
+        # Date range filter
+        if date_range:
+            start_time = pd.Timestamp(date_range[0]).tz_localize(local_tz)
+            end_time = pd.Timestamp(date_range[1]).tz_localize(local_tz)
+            filtered = filtered[
+                (filtered['Local Time'] >= start_time) &
+                (filtered['Local Time'] <= end_time)
+            ]
 
-    # Add debug print statements
-    print(f"Filtering stats:")
-    print(f"Total rows before filter: {len(data)}")
-    print(f"Operators filter: {operators}")
-    print(f"Game Types filter: {game_types}")
-    print(f"Maps filter: {maps}")
-    print(f"Date range: {start_time} to {end_time}")
-    print(f"Remaining rows after filter: {len(filtered)}")
-    
-    return filtered
+        logger.info(
+            f"Filtered data: {len(filtered)}/{len(data)} rows "
+            f"(operators={operators}, game_types={game_types}, "
+            f"maps={maps}, date_range={date_range})"
+        )
+        
+        return filtered
+    except Exception as e:
+        logger.error(f"Error filtering data: {e}")
+        return pd.DataFrame()  # Return empty DataFrame on error
 
 # Store plot references
 _plot_refs = {}
 
 def clear_plot_refs():
-    """Clear stored plot references"""
-    global _plot_refs
-    _plot_refs.clear()
-    if pn.state.curdoc is not None:
-        pn.state.curdoc.clear()  # Clear document state
+    """Clear stored plot references and clean up memory"""
+    try:
+        global _plot_refs
+        if _plot_refs:
+            for ref in _plot_refs.values():
+                if hasattr(ref, 'object') and hasattr(ref.object, 'data'):
+                    ref.object.data = []  # Clear plot data
+            _plot_refs.clear()
+        
+        if pn.state.curdoc is not None:
+            for root in pn.state.curdoc.roots:
+                if hasattr(root, 'children'):
+                    root.children = []  # Clear children
+            pn.state.curdoc.clear()
+    except Exception as e:
+        logger.error(f"Error clearing plot references: {e}")
 
 @pn.depends(operator_select.param.value, game_type_select.param.value, 
             map_select.param.value, date_range.param.value, watch=False)
@@ -501,11 +530,7 @@ def create_stats(operator, game_type, map_name, date_range):
     
     return summary_row
 
-# Define CSS styles as a Panel extension
-pn.extension(sizing_mode="stretch_width", css_files=[])
-pn.config.theme = 'dark'
-
-css = """
+# Remove duplicate CSS definition and keep only the one at the top
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 :root {
     --primary-color: #5B9AFF;
