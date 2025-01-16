@@ -510,7 +510,7 @@ pn.config.raw_css.append(open('styles.css').read())
 # Initialize dashboard with configuration
 dashboard = pn.template.FastListTemplate(
     title=DASHBOARD_TITLE,
-    sidebar_width=SIDEBAR_WIDTH,
+    sidebar_width=300,  # Set fixed width
     theme=THEME
 )
 
