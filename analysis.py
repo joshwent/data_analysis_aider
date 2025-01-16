@@ -145,6 +145,12 @@ def get_filtered_data(operators, game_types, maps, date_range):
     Filter data based on selected criteria. Results are cached to prevent redundant filtering.
     """
     try:
+        # Convert lists to tuples for hashing
+        operators = tuple(operators) if operators else ()
+        game_types = tuple(game_types) if game_types else ()
+        maps = tuple(maps) if maps else ()
+        date_range = tuple(date_range) if date_range else ()
+        
         filtered = data.loc[:]  # Use .loc for efficient view
         
         # Apply filters efficiently
