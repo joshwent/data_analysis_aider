@@ -401,32 +401,46 @@ def create_stats(operator, game_type, map_name, date_range):
     # Create a grid of stat cards
     stat_cards = []
     stats = [
-        ("Skill Rating", avg_skill, "🎯"),
-        ("K/D Ratio", kd_ratio, "⚔️"),
-        ("Win Rate", f"{win_rate}%", "🏆"),
-        ("Accuracy", f"{accuracy}%", "🎯"),
-        ("Best Streak", kill_streak, "🔥"),
-        ("Kills/min", kills_per_min, "⚡"),
-        ("Total Time", f"{total_time}m", "⏱️")
+        ("SKILL", avg_skill, "var(--primary-color)"),
+        ("K/D", kd_ratio, "var(--accent-color)"),
+        ("WIN RATE", f"{win_rate}%", "var(--success-color)"),
+        ("ACCURACY", f"{accuracy}%", "var(--warning-color)"),
+        ("STREAK", kill_streak, "var(--danger-color)"),
+        ("KILLS/MIN", kills_per_min, "var(--primary-color)"),
+        ("PLAYTIME", f"{total_time}m", "var(--accent-color)")
     ]
     
-    for title, value, icon in stats:
+    for title, value, color in stats:
         stat_cards.append(
             pn.Card(
                 pn.Column(
-                    pn.pane.Markdown(f"# {icon}", align='center', styles={'font-size': '2rem', 'margin': '0'}),
-                    pn.pane.Markdown(f"### {title}", align='center', styles={'margin': '0.5rem 0'}),
-                    pn.pane.Markdown(f"## {value}", align='center', styles={'color': 'var(--accent-color)', 'margin': '0'}),
+                    pn.pane.Markdown(f"## {value}", align='center', 
+                        styles={
+                            'color': color,
+                            'font-size': '24px',
+                            'font-weight': '600',
+                            'margin': '0 0 4px 0',
+                            'font-family': 'Inter, sans-serif'
+                        }
+                    ),
+                    pn.pane.Markdown(f"{title}", align='center',
+                        styles={
+                            'color': 'var(--text-secondary)',
+                            'font-size': '12px',
+                            'font-weight': '500',
+                            'letter-spacing': '0.1em',
+                            'margin': '0'
+                        }
+                    ),
                     sizing_mode='stretch_width',
                     styles={'text-align': 'center'}
                 ),
                 styles={
                     'background': 'var(--bg-card)',
                     'border': '1px solid var(--border-color)',
-                    'border-radius': '12px',
-                    'padding': '1rem',
-                    'margin': '0.5rem',
-                    'box-shadow': '0 4px 6px rgba(0,0,0,0.1)'
+                    'border-radius': '8px',
+                    'padding': '12px 8px',
+                    'margin': '4px'
                 },
                 sizing_mode='stretch_width'
             )
@@ -434,14 +448,14 @@ def create_stats(operator, game_type, map_name, date_range):
     
     return pn.GridBox(
         *stat_cards,
-        ncols=4,
+        ncols=7,
         sizing_mode='stretch_width',
         styles={
-            'grid-gap': '1rem',
-            'padding': '1rem',
+            'grid-gap': '8px',
+            'padding': '8px',
             'background': 'var(--bg-dark)',
-            'border-radius': '12px',
-            'margin-bottom': '2rem'
+            'border-radius': '8px',
+            'margin-bottom': '16px'
         }
     )
 
