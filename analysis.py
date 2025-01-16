@@ -488,36 +488,29 @@ def create_stats(operator, game_type, map_name, date_range):
             })
         )
 
-    # Calculate aggregated stats using vectorized operations
-    stats = {
+    # Calculate all stats at once using vectorized operations
+    stats_dict = {
         'avg_skill': filtered_data['Skill'].mean(),
         'kd_ratio': filtered_data['KD_Ratio'].mean(),
         'win_rate': 100 * filtered_data['Match_Won'].mean(),
         'accuracy': 100 * filtered_data['Accuracy'].mean(),
         'kill_streak': filtered_data['Longest Streak'].max(),
-        'kills_per_min': filtered_data['Kills'].sum() / filtered_data['Lifetime_Minutes'].sum() * 60,
-        'total_time': filtered_data['Lifetime_Minutes'].sum()
+        'kills_per_min': (filtered_data['Kills'].sum() / filtered_data['Lifetime Time Played'].sum() * 60),
+        'total_time': filtered_data['Lifetime Time Played'].sum()
     }
     
-    # Round values
-    stats = {k: round(float(v or 0), 2) for k, v in stats.items()}
+    # Round all values
+    stats_dict = {k: round(float(v or 0), 2) for k, v in stats_dict.items()}
     
-    # Calculate streaks
-    kill_streak = filtered_data['Longest Streak'].max()
-    
-    # Calculate time-based stats
-    total_time = filtered_data['Lifetime Time Played'].sum()
-    kills_per_min = (total_kills / total_time * 60).round(2)
-    
-    # Create performance summary row
+    # Create performance summary row with the calculated stats
     stats = [
-        ("SKILL", avg_skill, "var(--primary-color)"),
-        ("K/D", kd_ratio, "var(--accent-color)"),
-        ("WIN", f"{win_rate}%", "var(--success-color)"),
-        ("ACC", f"{accuracy}%", "var(--warning-color)"),
-        ("STREAK", kill_streak, "var(--danger-color)"),
-        ("K/MIN", kills_per_min, "var(--primary-color)"),
-        ("TIME", f"{total_time}m", "var(--accent-color)")
+        ("SKILL", stats_dict['avg_skill'], "var(--primary-color)"),
+        ("K/D", stats_dict['kd_ratio'], "var(--accent-color)"),
+        ("WIN", f"{stats_dict['win_rate']}%", "var(--success-color)"),
+        ("ACC", f"{stats_dict['accuracy']}%", "var(--warning-color)"),
+        ("STREAK", stats_dict['kill_streak'], "var(--danger-color)"),
+        ("K/MIN", stats_dict['kills_per_min'], "var(--primary-color)"),
+        ("TIME", f"{stats_dict['total_time']}m", "var(--accent-color)")
     ]
     
     stat_elements = []
