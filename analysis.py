@@ -66,6 +66,7 @@ filter_accordion = pn.Accordion(
     ('Game Types', game_type_group),
     ('Maps', map_group),
     width=250,
+    height=600,
     active=[0],  # Open first panel by default
     sizing_mode='fixed'
 )
@@ -366,8 +367,7 @@ def create_plots(operator, game_type, map_name, date_range):
         map_performance_pane,
         activity_heatmap_pane,
         ncols=2,
-        sizing_mode='fixed',
-        width=1200,
+        sizing_mode='stretch_width',
         styles={
             'grid-gap': '1rem',
             'padding': '1rem',
@@ -644,7 +644,8 @@ dashboard.sidebar.append(
         date_range,
         styles={'background': 'var(--bg-card)'},
         margin=(0, 10),
-        sizing_mode='stretch_width'
+        width=300,
+        sizing_mode='stretch_height'
     )
 )
 
