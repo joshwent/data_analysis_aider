@@ -68,22 +68,26 @@ filter_accordion = pn.Accordion(
     width=250,
     height=600,
     active=[0],  # Open first panel by default
-    sizing_mode='fixed'
+    sizing_mode='stretch_width'
 )
 
 
+# Calculate default date range
+default_start = data['Local Time'].min().replace(tzinfo=None)
+default_end = data['Local Time'].max().replace(tzinfo=None)
+
 date_range = pn.widgets.DatetimeRangePicker(
     name='Date Range',
-    start=data['Local Time'].min().replace(tzinfo=None),
-    end=data['Local Time'].max().replace(tzinfo=None),
-    value=(data['Local Time'].min().replace(tzinfo=None),
-           data['Local Time'].max().replace(tzinfo=None)),
-    width=220,
+    start=default_start,
+    end=default_end,
+    value=(default_start, default_end),
+    width=250,
     styles={
         'background': 'rgb(30, 30, 30)',
-        'padding': '10px',
-        'border-radius': '4px',
-        'margin-top': '20px'
+        'padding': '12px',
+        'border-radius': '8px',
+        'margin-top': '20px',
+        'width': '100%'
     }
 )
 
@@ -142,9 +146,12 @@ def create_plots(operator, game_type, map_name, date_range):
         x='Local Time',
         y='Skill',
         title="Skill Progression Over Time",
-        height=300,
-        width=600,
+        height=350,
         color_discrete_sequence=['#5B9AFF']
+    )
+    skill_plot.update_layout(
+        autosize=True,
+        margin=dict(l=50, r=50, t=50, b=50)
     )
     skill_plot.update_traces(line_width=2)
     skill_plot.update_layout(
@@ -382,14 +389,19 @@ def create_plots(operator, game_type, map_name, date_range):
 def create_stats(operator, game_type, map_name, date_range):
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
-    # Calculate basic stats
-    avg_skill = filtered_data['Skill'].mean().round(2)
-    total_kills = filtered_data['Kills'].sum()
-    total_deaths = filtered_data['Deaths'].sum()
-    kd_ratio = (total_kills / total_deaths).round(2)
-    win_rate = (filtered_data['Match Outcome'] == 'win').mean().round(3) * 100
-    accuracy = (filtered_data['Hits'].sum() / filtered_data['Shots'].sum()).round(3) * 100
-    avg_score = filtered_data['Score'].mean().round(0)
+    # Calculate basic stats with error handling
+    try:
+        avg_skill = filtered_data['Skill'].mean().round(2) if not filtered_data.empty else 0
+        total_kills = filtered_data['Kills'].sum()
+        total_deaths = max(filtered_data['Deaths'].sum(), 1)  # Prevent division by zero
+        kd_ratio = (total_kills / total_deaths).round(2)
+        win_rate = (filtered_data['Match Outcome'].str.lower() == 'win').mean().round(3) * 100
+        total_shots = filtered_data['Shots'].sum()
+        accuracy = (filtered_data['Hits'].sum() / max(total_shots, 1)).round(3) * 100
+        avg_score = filtered_data['Score'].mean().round(0) if not filtered_data.empty else 0
+    except Exception as e:
+        print(f"Error calculating stats: {e}")
+        avg_skill, kd_ratio, win_rate, accuracy, avg_score = 0, 0, 0, 0, 0
     
     # Calculate streaks
     kill_streak = filtered_data['Longest Streak'].max()
@@ -638,14 +650,19 @@ dashboard = pn.template.FastListTemplate(
 
 # Add components to the sidebar
 dashboard.sidebar.append(
-    pn.Column(
-        pn.pane.Markdown("## Filters", styles={'color': 'var(--text-primary)', 'margin-bottom': '1rem'}),
-        filter_accordion,
-        date_range,
-        styles={'background': 'var(--bg-card)'},
-        margin=(0, 10),
+    pn.Card(
+        pn.Column(
+            pn.pane.Markdown("## Filters", styles={'color': 'var(--text-primary)', 'margin-bottom': '1rem'}),
+            filter_accordion,
+            date_range,
+            styles={'background': 'var(--bg-card)'},
+            margin=(0, 10),
+            width=300,
+            height=800
+        ),
+        sizing_mode='fixed',
         width=300,
-        sizing_mode='stretch_height'
+        height=800
     )
 )
 
