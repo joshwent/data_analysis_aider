@@ -121,7 +121,7 @@ date_range = pn.widgets.DatetimeRangePicker(
 )
 
 # Create plots using hvPlot
-@pn.cache(ttl=CACHE_TTL, shared=True)
+@pn.cache(ttl=CACHE_TTL)
 @lru_cache(maxsize=CACHE_SIZE)
 def get_filtered_data(operators, game_types, maps, date_range):
     """
@@ -465,6 +465,7 @@ def create_plots(operator, game_type, map_name, date_range):
     return layout
 
 # Create stats cards
+@pn.cache(ttl=CACHE_TTL)
 @pn.depends(operator_select.param.value, game_type_select.param.value,
             map_select.param.value, date_range.param.value, watch=False)
 def create_stats(operator, game_type, map_name, date_range):
