@@ -6,25 +6,21 @@ from config import *
 
 pn.extension('plotly', css_files=['styles.css'])
 
-# Load the CSV data
-csv_file = 'data.csv'
-try:
+def load_data(csv_file='data.csv'):
+    """Load and preprocess the CSV data"""
     data = pd.read_csv(csv_file)
-    logger.info(f"Loaded {len(data)} rows from {csv_file}")
+    data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp'])
+    data['Local Time'] = data['UTC Timestamp'].dt.tz_localize('UTC').dt.tz_convert(None)
     
-    # Convert timestamps once at load time
-    data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp']).dt.tz_localize('UTC')
-    local_tz = datetime.datetime.now().astimezone().tzinfo
-    data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
+    # Pre-calculate metrics
+    data['Accuracy'] = (data['Hits'] / data['Shots']).clip(0, 1)
+    data['KD_Ratio'] = data['Kills'] / data['Deaths'].replace(0, 1)
+    data['Match_Won'] = data['Match Outcome'].str.lower() == 'win'
     
-    if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("Sample data:")
-        logger.debug(data.head())
-        logger.debug("\nColumns:")
-        logger.debug(data.columns)
-except Exception as e:
-    logger.error(f"Error loading data: {e}")
-    raise
+    return data
+
+# Load data
+data = load_data()
 
 # Create filter widgets with checkboxes
 def create_checkbox_group(name, options, width=220):
