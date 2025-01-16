@@ -729,9 +729,7 @@ dashboard = pn.template.FastListTemplate(
     header_color="#D8D9DA",
     theme="dark",
     theme_toggle=False,
-    main_max_width="1400px",  # Limit maximum width of main content
-    loading_spinner=True,
-    busy_indicator=True
+    main_max_width="1400px"  # Limit maximum width of main content
 )
 
 # Add components to the sidebar
