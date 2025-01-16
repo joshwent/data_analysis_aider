@@ -121,8 +121,8 @@ date_range = pn.widgets.DatetimeRangePicker(
 )
 
 # Create plots using hvPlot
-@pn.cache(ttl=60)  # Cache for 1 minute to balance freshness and performance
-@lru_cache(maxsize=128)  # Additional caching layer for repeated queries
+@pn.cache(ttl=CACHE_TTL)
+@lru_cache(maxsize=CACHE_SIZE)
 def get_filtered_data(operators, game_types, maps, date_range):
     """
     Filter data based on selected criteria. Results are cached to prevent redundant filtering.
@@ -547,13 +547,9 @@ def create_stats(operator, game_type, map_name, date_range):
     
     return summary_row
 
-# Initialize Panel with CSS files
+# Initialize Panel with minimal CSS
 pn.extension('plotly')
-pn.config.raw_css.extend([
-    open('css/base.css').read(),
-    open('css/components.css').read(),
-    open('css/plots.css').read()
-])
+pn.config.raw_css.append(open('styles.css').read())
 
 # Layout the dashboard
 # Initialize dashboard with configuration
@@ -563,14 +559,11 @@ dashboard = pn.template.FastListTemplate(
     theme=THEME
 )
 
-# Pre-calculate common data
+# Pre-calculate common data efficiently
 data['Hour'] = data['Local Time'].dt.hour
 data['Day'] = data['Local Time'].dt.day_name()
-data['Accuracy'] = (data['Hits'] / data['Shots']).clip(0, 1)
-data['KD_Ratio'] = data.apply(
-    lambda row: row['Kills'] / max(row['Deaths'], 1),
-    axis=1
-)
+data['Accuracy'] = (data['Hits'] / data['Shots'].replace(0, 1)).clip(0, 1)
+data['KD_Ratio'] = data['Kills'] / data['Deaths'].replace(0, 1)
 
 # Add components to the sidebar
 # Create a sidebar container with proper sizing
