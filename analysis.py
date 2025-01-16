@@ -650,19 +650,15 @@ dashboard = pn.template.FastListTemplate(
 
 # Add components to the sidebar
 dashboard.sidebar.append(
-    pn.Card(
-        pn.Column(
-            pn.pane.Markdown("## Filters", styles={'color': 'var(--text-primary)', 'margin-bottom': '1rem'}),
-            date_range,
-            filter_accordion,
-            styles={'background': 'var(--bg-card)'},
-            margin=(0, 10),
-            width=300,
-            height=800
-        ),
-        sizing_mode='fixed',
+    pn.Column(
+        pn.pane.Markdown("## Filters", styles={'color': 'var(--text-primary)', 'margin-bottom': '1rem'}),
+        date_range,
+        filter_accordion,
+        styles={'background': 'var(--bg-card)', 'border-radius': '8px', 'padding': '1rem'},
+        margin=(0, 10),
         width=300,
-        height=800
+        height=800,
+        sizing_mode='fixed'
     )
 )
 
