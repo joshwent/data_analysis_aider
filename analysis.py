@@ -8,6 +8,7 @@ from config import *
 pn.extension('plotly', css_files=['styles.css'])
 
 # Load and process data once
+print(f"Loading data from data.csv...")
 data = pd.read_csv('data.csv')
 data['Local Time'] = pd.to_datetime(data['UTC Timestamp'])
 data['Accuracy'] = (data['Hits'] / data['Shots']).clip(0, 1)
@@ -108,22 +109,18 @@ def get_filtered_data(operators, game_types, maps, date_range):
         
         # Date range filter
         if date_range:
-            start_time = pd.Timestamp(date_range[0]).tz_localize(local_tz)
-            end_time = pd.Timestamp(date_range[1]).tz_localize(local_tz)
+            start_time = pd.Timestamp(date_range[0])
+            end_time = pd.Timestamp(date_range[1])
             filtered = filtered[
                 (filtered['Local Time'] >= start_time) &
                 (filtered['Local Time'] <= end_time)
             ]
 
-        logger.info(
-            f"Filtered data: {len(filtered)}/{len(data)} rows "
-            f"(operators={operators}, game_types={game_types}, "
-            f"maps={maps}, date_range={date_range})"
-        )
+        print(f"Filtered data: {len(filtered)}/{len(data)} rows")
         
         return filtered
     except Exception as e:
-        logger.error(f"Error filtering data: {e}")
+        print(f"Error filtering data: {e}")
         return pd.DataFrame()  # Return empty DataFrame on error
 
 # Store plot references
