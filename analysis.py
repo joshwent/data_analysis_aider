@@ -530,7 +530,8 @@ def create_stats(operator, game_type, map_name, date_range):
     
     return summary_row
 
-# Remove duplicate CSS definition and keep only the one at the top
+# Additional CSS styles
+additional_css = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 :root {
     --primary-color: #5B9AFF;
@@ -714,6 +715,9 @@ body {
     fill: var(--text-secondary) !important;
 }
 """
+
+# Update Panel extension with all CSS
+pn.extension(raw_css=[css, additional_css])
 
 # Layout the dashboard
 dashboard = pn.template.FastListTemplate(
