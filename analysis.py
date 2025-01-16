@@ -4,6 +4,26 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+# Define CSS styles
+css = """
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+:root {
+    --primary-color: #5B9AFF;
+    --accent-color: #00D1B2;
+    --bg-dark: #111217;
+    --bg-card: #181B1F;
+    --bg-hover: #22252B;
+    --text-primary: #D8D9DA;
+    --text-secondary: #99A1B2;
+    --border-color: #2C3235;
+    --panel-header: #22252B;
+    --panel-border: #34363C;
+    --success-color: #6CCF8E;
+    --warning-color: #FF9900;
+    --danger-color: #FF5286;
+}
+"""
+
 # Load and configure Panel styling
 pn.config.sizing_mode = "stretch_width"
 pn.extension(raw_css=[css])
