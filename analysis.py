@@ -1,27 +1,12 @@
 import pandas as pd
 import panel as pn
 import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-
-# Import configuration and initialize Panel
-from config import *
-
 import datetime
 import logging
+from config import *
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-import os
-import panel as pn
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import pandas as pd
-import numpy as np
-from functools import lru_cache
 
 # Configure Panel
 pn.extension('plotly')
