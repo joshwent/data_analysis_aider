@@ -755,15 +755,11 @@ combined_css = css + additional_css
 pn.extension('plotly', raw_css=[combined_css])
 
 # Layout the dashboard
-# Initialize dashboard with optimized settings
+# Initialize dashboard with minimal settings
 dashboard = pn.template.FastListTemplate(
     title="Gaming Performance Analytics",
     sidebar_width=300,
-    header_background="#111217",
-    header_color="#D8D9DA",
-    theme="dark",
-    theme_toggle=False,
-    main_max_width="1400px"
+    theme="dark"
 )
 
 # Pre-calculate common data
@@ -787,22 +783,14 @@ sidebar_content = pn.Column(
     sizing_mode='stretch_height'
 )
 
-# Add to sidebar with proper document handling
-dashboard.sidebar.clear()
+# Add components to template
 dashboard.sidebar.append(sidebar_content)
-
-# Main content area with proper document handling
-main_content = pn.Column(
+dashboard.main.append(pn.Column(
     create_stats,
     pn.layout.Divider(margin=(20, 0)),
     create_plots,
-    sizing_mode='stretch_width',
-    styles={'background': 'var(--bg-dark)'},
-    margin=(0, 20)
-)
+    sizing_mode='stretch_width'
+))
 
-dashboard.main.clear()
-dashboard.main.append(main_content)
-
-# Initialize the dashboard with a single document
-dashboard.show()
+if __name__ == '__main__':
+    dashboard.show()
