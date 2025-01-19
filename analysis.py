@@ -16,8 +16,22 @@ from html_parser import parse_html_file
 import base64
 import io
 
-# Initialize empty DataFrame
-data = pd.DataFrame()
+# Load the CSV data
+csv_file = 'data.csv'  # Replace with your CSV file path
+data = pd.read_csv(csv_file)
+
+# Convert UTC timestamps to local time and ensure proper timezone handling
+data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp']).dt.tz_localize('UTC')
+local_tz = datetime.datetime.now().astimezone().tzinfo
+data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
+
+# Remove unwanted game types
+data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
+data = data[data['Game Type'] != 'Training Course']
+data = data[data['Game Type'] != 'Ran-snack']
+data = data[data['Game Type'] != 'Stop and Go']
+data = data[data['Game Type'] != 'Red Light Green Light']
+data = data[data['Game Type'] != 'Prop Hunt']
 
 # Remove unwanted game type
 data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
@@ -861,10 +875,11 @@ def update_data(contents, filename):
     
     try:
         if 'html' in filename.lower():
-            # Parse HTML file
+            # Parse HTML file and update global data
+            global data
             data = parse_html_file(decoded.decode('utf-8'))
             
-            # Remove unwanted game types
+            # Apply the same filters as initial CSV data
             data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
             data = data[data['Game Type'] != 'Training Course']
             data = data[data['Game Type'] != 'Ran-snack']
