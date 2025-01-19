@@ -4,12 +4,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 from dash import Dash, html, dcc, Input, Output, State, callback, callback_context, no_update, dash
 import pandas as pd
+import dash_bootstrap_components as dbc
 
 # Global variables
 global data
 data = pd.DataFrame()  # Start with empty DataFrame
-import dash_bootstrap_components as dbc
-from plotly.subplots import make_subplots
 
 # Initialize the Dash app
 app = Dash(__name__, 
@@ -818,4 +817,4 @@ def update_data(contents, example_clicks, start_date, end_date, filename):
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server()
