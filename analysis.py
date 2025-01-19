@@ -80,7 +80,7 @@ date_range = dcc.DatePickerRange(
 
 # Set default plot dimensions
 PLOT_HEIGHT = 300
-PLOT_WIDTH = 550  # Reduced from 600
+PLOT_WIDTH = 490
     
 # Create plots using hvPlot
 def get_filtered_data(operators, game_types, maps, date_range):
@@ -248,8 +248,8 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
         x='Local Time',
         y=['KD_Ratio', 'Accuracy'],
         title="Performance Metrics Over Time",
-        height=300,
-        width=600
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH
     )
     metrics_plot.update_traces(line_width=2)
     metrics_plot.update_layout(template="plotly_dark")
@@ -261,8 +261,8 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
         x='Local Time',
         y='Headshot_Ratio',
         title="Headshot Ratio Over Time",
-        height=300,
-        width=600
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH
     )
     headshot_plot.update_traces(line_color='#ff4d4d', line_width=2)
     headshot_plot.update_layout(
@@ -314,7 +314,7 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
         x='Map',
         y='KD',
         title="K/D Ratio by Map",
-        height=400,
+        height=PLOT_HEIGHT,
         width=PLOT_WIDTH,
         color_discrete_sequence=['purple']
     )
