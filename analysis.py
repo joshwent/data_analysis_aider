@@ -529,6 +529,12 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
         'borderRadius': '8px',
         'boxShadow': '0 2px 4px rgba(0,0,0,0.2)'
     })
+    
+    # Return both cards in a container
+    return html.Div([
+        lifetime_card,
+        filtered_card
+    ])
 
 # Define CSS styles
 css = """
