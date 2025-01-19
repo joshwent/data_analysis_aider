@@ -876,7 +876,6 @@ def update_data(contents, start_date, end_date, filename):
     try:
         if 'html' in filename.lower():
             # Parse HTML file and update global data
-            global data
             data = parse_html_file(decoded.decode('utf-8'))
             
             # Apply the same filters as initial CSV data
