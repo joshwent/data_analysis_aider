@@ -747,7 +747,7 @@ app.layout = dbc.Container([
                 id='upload-data',
                 children=html.Div([
                     'Drag and Drop or ',
-                    html.A('Select HTML File')
+                    dbc.Button('Select HTML File', color="primary", size="sm", className="ms-2")
                 ]),
                 style={
                     'width': '100%',
