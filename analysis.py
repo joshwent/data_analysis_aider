@@ -296,7 +296,7 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
                 .agg({'Kills': 'sum', 'Deaths': 'sum'})
                 .reset_index())
     
-    # Calculate KD ratio safely
+    # Calculate KD ratio safely, replacing 0 deaths with 1
     map_stats['KD'] = (map_stats['Kills'] / map_stats['Deaths'].replace(0, 1)).round(2)
     
     # Sort by KD ratio
@@ -404,11 +404,12 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     latest_stats = filtered_data.sort_values('UTC Timestamp').iloc[-1]
     total_kills = int(latest_stats['Lifetime Kills'])
     total_deaths = int(latest_stats['Lifetime Deaths'])
-    kd_ratio = round(total_kills / total_deaths, 2)
+    kd_ratio = round(total_kills / (total_deaths or 1), 2)  # Use 1 if total_deaths is 0
     total_wins = int(latest_stats['Lifetime Wins'])
     total_games = int(latest_stats['Lifetime Games Played'])
-    win_rate = round((total_wins / total_games) * 100, 1)
-    accuracy = round((latest_stats['Lifetime Hits'] / (latest_stats['Lifetime Hits'] + latest_stats['Lifetime Misses'])) * 100, 1)
+    win_rate = round((total_wins / (total_games or 1)) * 100, 1)  # Use 1 if total_games is 0
+    total_shots = latest_stats['Lifetime Hits'] + latest_stats['Lifetime Misses']
+    accuracy = round((latest_stats['Lifetime Hits'] / (total_shots or 1)) * 100, 1)  # Use 1 if total_shots is 0
     avg_score = int(round(filtered_data['Score'].mean(), 0))
     
     # Calculate streaks
