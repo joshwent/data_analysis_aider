@@ -25,14 +25,6 @@ data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp']).dt.tz_localize('UT
 local_tz = datetime.datetime.now().astimezone().tzinfo
 data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
 
-# Remove unwanted game types
-data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
-data = data[data['Game Type'] != 'Training Course']
-data = data[data['Game Type'] != 'Ran-snack']
-data = data[data['Game Type'] != 'Stop and Go']
-data = data[data['Game Type'] != 'Red Light Green Light']
-data = data[data['Game Type'] != 'Prop Hunt']
-
 # Remove unwanted game type
 data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
 data = data[data['Game Type'] != 'Training Course']
@@ -40,11 +32,6 @@ data = data[data['Game Type'] != 'Ran-snack']
 data = data[data['Game Type'] != 'Stop and Go']
 data = data[data['Game Type'] != 'Red Light Green Light']
 data = data[data['Game Type'] != 'Prop Hunt']
-
-# Convert UTC timestamps to local time and ensure proper timezone handling
-data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp']).dt.tz_localize('UTC')
-local_tz = datetime.datetime.now().astimezone().tzinfo
-data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
 
 # print(data.columns)
 
