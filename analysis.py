@@ -852,8 +852,8 @@ def map_select_all(select_clicks, deselect_clicks, options):
      Output('map-checklist', 'options'),
      Output('date-range-picker', 'min_date_allowed'),
      Output('date-range-picker', 'max_date_allowed'),
-     Output('date-range-picker', 'start_date'),
-     Output('date-range-picker', 'end_date')],
+     Output('date-range-picker', 'start_date', allow_duplicate=True),
+     Output('date-range-picker', 'end_date', allow_duplicate=True)],
     Input('load-example-data', 'n_clicks'),
     prevent_initial_call=True
 )
