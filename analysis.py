@@ -399,9 +399,8 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
                              'padding': '20px',
                              'color': 'var(--text-secondary)'})
     
-    # Calculate basic stats using most recent lifetime values
-    avg_skill = round(filtered_data['Skill'].mean(), 2)
-    latest_stats = filtered_data.sort_values('UTC Timestamp').iloc[-1]
+    # Calculate lifetime stats using the original unfiltered data
+    latest_stats = data.sort_values('UTC Timestamp').iloc[-1]
     total_kills = int(latest_stats['Lifetime Kills'])
     total_deaths = int(latest_stats['Lifetime Deaths'])
     kd_ratio = round(total_kills / (total_deaths or 1), 2)  # Use 1 if total_deaths is 0
@@ -468,9 +467,9 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     filtered_kills = filtered_data['Kills'].sum()
     filtered_deaths = filtered_data['Deaths'].sum()
     filtered_kd = round(filtered_kills / (filtered_deaths or 1), 2)
-    filtered_wins = len(filtered_data[filtered_data['Match Outcome'] == 'Victory'])
+    filtered_wins = filtered_data['Match Outcome'].str.lower().str.contains('victory').sum()
     filtered_total = len(filtered_data)
-    filtered_winrate = round((filtered_wins / filtered_total) * 100, 1)
+    filtered_winrate = round((filtered_wins / (filtered_total or 1)) * 100, 1)  # Use 1 if filtered_total is 0
     filtered_accuracy = round((filtered_data['Hits'].sum() / filtered_data['Shots'].sum()) * 100, 1)
     filtered_streak = int(filtered_data['Longest Streak'].max())
     
