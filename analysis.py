@@ -78,6 +78,10 @@ date_range = dcc.DatePickerRange(
 
 # Create plots using hvPlot
 def get_filtered_data(operators, game_types, maps, date_range):
+    # Return empty DataFrame if no filters are selected
+    if not operators and not game_types and not maps:
+        return pd.DataFrame(columns=data.columns)
+        
     filtered = data.copy()
     
     # Basic filters with checkbox lists
@@ -118,15 +122,15 @@ def get_filtered_data(operators, game_types, maps, date_range):
      Input('date-range-picker', 'end_date')]
 )
 def create_plots(operator, game_type, map_name, start_date, end_date):
-    # Return empty div if no filters are selected
-    if not operator and not game_type and not map_name:
+    date_range = (start_date, end_date)
+    filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
+    
+    # Return message if no data after filtering
+    if filtered_data.empty:
         return html.Div("Select filters to display charts", 
                        style={'text-align': 'center', 
                              'padding': '20px',
                              'color': 'var(--text-secondary)'})
-    
-    date_range = (start_date, end_date)
-    filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
     # Calculate metrics with proper handling of edge cases
     filtered_data['Accuracy'] = (filtered_data['Hits'] / filtered_data['Shots']).round(3)
@@ -385,15 +389,15 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
      Input('date-range-picker', 'end_date')]
 )
 def create_stats(operator, game_type, map_name, start_date, end_date):
-    # Return empty div if no filters are selected
-    if not operator and not game_type and not map_name:
+    date_range = (start_date, end_date)
+    filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
+    
+    # Return message if no data after filtering
+    if filtered_data.empty:
         return html.Div("Select filters to display statistics", 
                        style={'text-align': 'center', 
                              'padding': '20px',
                              'color': 'var(--text-secondary)'})
-    
-    date_range = (start_date, end_date)
-    filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
     # Calculate basic stats using most recent lifetime values
     avg_skill = round(filtered_data['Skill'].mean(), 2)
