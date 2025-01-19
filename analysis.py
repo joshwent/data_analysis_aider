@@ -1,13 +1,10 @@
 import datetime
 import pandas as pd
-import panel as pn
 import plotly.express as px
 import plotly.graph_objects as go
+from dash import Dash, html, dcc, Input, Output, callback
+import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
-
-# Enable Panel extension with a modern theme
-pn.extension(sizing_mode="stretch_width")
-pn.config.theme = 'dark'
 
 # Load the CSV data
 csv_file = 'data.csv'  # Replace with your CSV file path
