@@ -41,13 +41,8 @@ def create_checkbox_group(id_prefix, name, options):
     ], className="filter-group")
 
 operator_group = create_checkbox_group('operator', 'Select Operators', list(data['Operator'].unique()))
-operator_select = operator_group[1]
-
 game_type_group = create_checkbox_group('game-type', 'Select Game Types', list(data['Game Type'].unique()))
-game_type_select = game_type_group[1]
-
 map_group = create_checkbox_group('map', 'Select Maps', list(data['Map'].unique()))
-map_select = map_group[1]
 
 # Create filter accordion using Dash components
 filter_accordion = dbc.Accordion([
