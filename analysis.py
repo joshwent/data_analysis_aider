@@ -414,11 +414,8 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     # Calculate streaks
     kill_streak = int(filtered_data['Longest Streak'].max())
     
-    # Calculate time-based stats from filtered matches
-    # Calculate time difference between match start and end timestamps
-    filtered_data['Match Duration'] = (pd.to_datetime(filtered_data['Match End Timestamp']) - 
-                                     pd.to_datetime(filtered_data['Match Start Timestamp'])).dt.total_seconds()
-    total_seconds = int(filtered_data['Match Duration'].sum())
+    # Get total time from lifetime stats
+    total_seconds = int(filtered_data['Lifetime Time Played'].max())
     total_minutes = total_seconds // 60
     kills_per_min = round((total_kills / (total_minutes or 1)), 2)
     
