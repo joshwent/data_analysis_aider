@@ -365,8 +365,16 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
     return layout
 
 # Create stats cards
-@pn.depends(operator_select, game_type_select, map_select, date_range)
-def create_stats(operator, game_type, map_name, date_range):
+@callback(
+    Output('stats-container', 'children'),
+    [Input('operator-checklist', 'value'),
+     Input('game-type-checklist', 'value'),
+     Input('map-checklist', 'value'),
+     Input('date-range-picker', 'start_date'),
+     Input('date-range-picker', 'end_date')]
+)
+def create_stats(operator, game_type, map_name, start_date, end_date):
+    date_range = (start_date, end_date)
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
     # Calculate basic stats
@@ -385,33 +393,69 @@ def create_stats(operator, game_type, map_name, date_range):
     total_time = filtered_data['Lifetime Time Played'].sum()
     kills_per_min = (total_kills / total_time * 60).round(2)
     
-    return pn.Card(
-        pn.GridBox(
-            pn.pane.Markdown("### Performance Summary", margin=(0,0,10,0), styles={'color': 'var(--accent-color)', 'font-size': '1.4rem', 'grid-column': 'span 4'}),
+    return dbc.Card([
+        dbc.CardBody([
+            html.H3("Performance Summary", 
+                    className="text-center mb-4",
+                    style={'color': 'var(--accent-color)', 'fontSize': '1.4rem'}),
             
-            # Performance metrics in a row
-            pn.pane.Markdown(f"**Skill Rating**\n{avg_skill}", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**K/D Ratio**\n{kd_ratio}", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**Win Rate**\n{win_rate}%", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**Accuracy**\n{accuracy}%", align='center', styles={'font-size': '1.1rem'}),
+            dbc.Row([
+                # Performance metrics
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Skill Rating"),
+                        html.Div(f"{avg_skill}")
+                    ], className="text-center mb-3")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("K/D Ratio"),
+                        html.Div(f"{kd_ratio}")
+                    ], className="text-center mb-3")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Win Rate"),
+                        html.Div(f"{win_rate}%")
+                    ], className="text-center mb-3")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Accuracy"),
+                        html.Div(f"{accuracy}%")
+                    ], className="text-center mb-3")
+                ]),
+            ]),
             
-            # Additional stats in a row
-            pn.pane.Markdown(f"**Best Streak**\n{kill_streak}", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**Kills/min**\n{kills_per_min}", align='center', styles={'font-size': '1.1rem'}),
-            pn.pane.Markdown(f"**Total Time**\n{total_time}m", align='center', styles={'font-size': '1.1rem'}),
-            
-            ncols=4,
-            sizing_mode='stretch_width'
-        ),
-        css_classes=['stats-card'],
-        styles={
-            'background': 'rgb(30, 30, 30)',
-            'color': 'white',
-            'border': '1px solid #444',
-            'border-radius': '8px',
-            'box-shadow': '0 2px 4px rgba(0,0,0,0.2)'
-        }
-    )
+            dbc.Row([
+                # Additional stats
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Best Streak"),
+                        html.Div(f"{kill_streak}")
+                    ], className="text-center")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Kills/min"),
+                        html.Div(f"{kills_per_min}")
+                    ], className="text-center")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Total Time"),
+                        html.Div(f"{total_time}m")
+                    ], className="text-center")
+                ]),
+            ])
+        ])
+    ], className="stats-card", style={
+        'background': 'rgb(30, 30, 30)',
+        'color': 'white',
+        'border': '1px solid #444',
+        'borderRadius': '8px',
+        'boxShadow': '0 2px 4px rgba(0,0,0,0.2)'
+    })
 
 # Define CSS styles
 css = """
@@ -583,40 +627,34 @@ body {
 }
 """
 
-# Layout the dashboard
-dashboard = pn.template.FastListTemplate(
-    title="Gaming Performance Analytics",
-    sidebar_width=300,
-    header_background="#111217",
-    header_color="#D8D9DA",
-    theme="dark",
-    theme_toggle=False,
-    main_max_width="1400px"  # Limit maximum width of main content
-)
+# Define the app layout
+app.layout = dbc.Container([
+    dbc.Row([
+        # Sidebar
+        dbc.Col([
+            html.H2("Filters", 
+                   style={'color': 'var(--text-primary)', 
+                         'marginBottom': '1rem'}),
+            filter_accordion,
+            date_range
+        ], width=3, style={
+            'background': 'var(--bg-card)',
+            'padding': '20px',
+            'borderRadius': '8px'
+        }),
+        
+        # Main content
+        dbc.Col([
+            html.Div(id='stats-container'),
+            html.Hr(style={'margin': '20px 0'}),
+            html.Div(id='plots-container')
+        ], width=9, style={
+            'background': 'var(--bg-dark)',
+            'padding': '20px'
+        })
+    ])
+], fluid=True, style={'maxWidth': '1400px'})
 
-# Add components to the sidebar
-dashboard.sidebar.append(
-    pn.Column(
-        pn.pane.Markdown("## Filters", styles={'color': 'var(--text-primary)', 'margin-bottom': '1rem'}),
-        filter_accordion,
-        date_range,
-        styles={'background': 'var(--bg-card)'},
-        margin=(0, 10),
-        sizing_mode='stretch_width'
-    )
-)
-
-# Main content area
-dashboard.main.append(
-    pn.Column(
-        create_stats,
-        pn.layout.Divider(margin=(20, 0)),
-        create_plots,
-        sizing_mode='stretch_width',
-        styles={'background': 'var(--bg-dark)'},
-        margin=(0, 20)
-    )
-)
-
-# Serve the dashboard
-dashboard.show()
+# Run the app
+if __name__ == '__main__':
+    app.run_server(debug=True)
