@@ -2,7 +2,7 @@ import datetime
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from dash import Dash, html, dcc, Input, Output, State, callback, callback_context
+from dash import Dash, html, dcc, Input, Output, State, callback, callback_context, no_update
 import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
 
@@ -829,21 +829,7 @@ def map_select_all(select_clicks, deselect_clicks, options):
         return []
     return []
 
-# Callback for date picker defaults
-@callback(
-    [Output('date-range-picker', 'start_date'),
-     Output('date-range-picker', 'end_date')],
-    [Input('date-range-picker', 'start_date'),
-     Input('date-range-picker', 'end_date')]
-)
-def set_date_picker_defaults(start_date, end_date):
-    if start_date is None:
-        start_date = data['Local Time'].min().replace(tzinfo=None)
-    if end_date is None:
-        end_date = data['Local Time'].max().replace(tzinfo=None)
-    return start_date, end_date
-
-# Callback for file upload
+# Combined callback for file upload and date picker
 @callback(
     [Output('upload-data', 'children'),
      Output('operator-checklist', 'options'),
@@ -853,10 +839,24 @@ def set_date_picker_defaults(start_date, end_date):
      Output('date-range-picker', 'max_date_allowed'),
      Output('date-range-picker', 'start_date'),
      Output('date-range-picker', 'end_date')],
-    [Input('upload-data', 'contents')],
+    [Input('upload-data', 'contents'),
+     Input('date-range-picker', 'start_date'),
+     Input('date-range-picker', 'end_date')],
     [State('upload-data', 'filename')]
 )
-def update_data(contents, filename):
+def update_data(contents, start_date, end_date, filename):
+    ctx = callback_context
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
+    
+    # Handle date picker updates
+    if triggered_id in ['date-range-picker']:
+        if start_date is None:
+            start_date = data['Local Time'].min().replace(tzinfo=None)
+        if end_date is None:
+            end_date = data['Local Time'].max().replace(tzinfo=None)
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, start_date, end_date
+    
+    # Handle file upload
     if contents is None:
         return html.Div([
             'Drag and Drop or ',
