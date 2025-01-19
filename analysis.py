@@ -927,7 +927,7 @@ def load_example_data(n_clicks):
                 'Error loading example data: ',
                 html.Pre(str(e))
             ]),
-            [], [], [], None, None, None, None
+            [], [], [], None, None, None, None, [], [], []  # Return empty lists for checklist values
         )
 
 # Combined callback for file upload and date picker
