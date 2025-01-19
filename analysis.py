@@ -347,7 +347,8 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
         xaxis_tickangle=45
     )
     
-    activity_heatmap_pane = pn.pane.Plotly(activity_heatmap)
+    # Add activity heatmap to plots list
+    plots.append(dcc.Graph(figure=activity_heatmap, id='activity-heatmap'))
     
     # Create responsive grid layout using Dash
     layout = html.Div(
