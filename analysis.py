@@ -860,7 +860,8 @@ def map_select_all(select_clicks, deselect_clicks, options):
      Output('date-range-picker', 'end_date', allow_duplicate=True),
      Output('operator-checklist', 'value', allow_duplicate=True),
      Output('game-type-checklist', 'value', allow_duplicate=True),
-     Output('map-checklist', 'value', allow_duplicate=True)],
+     Output('map-checklist', 'value', allow_duplicate=True),
+     Output('upload-data', 'contents')],
     [Input('upload-data', 'contents'),
      Input('load-example-data', 'n_clicks'),
      Input('date-range-picker', 'start_date'),
@@ -879,7 +880,7 @@ def update_data(contents, example_clicks, start_date, end_date, filename):
             start_date = data['Local Time'].min().replace(tzinfo=None)
         if end_date is None:
             end_date = data['Local Time'].max().replace(tzinfo=None)
-        return no_update, no_update, no_update, no_update, no_update, no_update, start_date, end_date, no_update, no_update, no_update
+        return no_update, no_update, no_update, no_update, no_update, no_update, start_date, end_date, no_update, no_update, no_update, None
 
     # Reset data before processing new data
     data = pd.DataFrame()
@@ -896,7 +897,7 @@ def update_data(contents, example_clicks, start_date, end_date, filename):
                     'Error loading example data: ',
                     html.Pre(str(e))
                 ]),
-                [], [], [], None, None, None, None, [], [], []
+                [], [], [], None, None, None, None, [], [], [], None
             )
     
     # Handle file upload
@@ -920,10 +921,10 @@ def update_data(contents, example_clicks, start_date, end_date, filename):
                     'Error processing file: ',
                     html.Pre(str(e))
                 ]),
-                [], [], [], None, None, None, None, [], [], []
+                [], [], [], None, None, None, None, [], [], [], None
             )
     else:
-        return html.Div(), [], [], [], None, None, None, None, [], [], []
+        return html.Div(), [], [], [], None, None, None, None, [], [], [], None
 
     # Apply common data processing
     # Filter out unwanted game types
@@ -972,7 +973,8 @@ def update_data(contents, example_clicks, start_date, end_date, filename):
         max_date,
         operator_values,
         game_type_values,
-        map_values
+        map_values,
+        None
     )
 
 # Run the app
