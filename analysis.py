@@ -399,16 +399,16 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
                              'padding': '20px',
                              'color': 'var(--text-secondary)'})
     
-    # Calculate lifetime stats using the original unfiltered data
-    latest_stats = data.sort_values('UTC Timestamp').iloc[-1]
-    total_kills = int(latest_stats['Lifetime Kills'])
-    total_deaths = int(latest_stats['Lifetime Deaths'])
+    # Calculate stats from filtered data
+    total_kills = filtered_data['Kills'].sum()
+    total_deaths = filtered_data['Deaths'].sum()
     kd_ratio = round(total_kills / (total_deaths or 1), 2)  # Use 1 if total_deaths is 0
-    total_wins = int(latest_stats['Lifetime Wins'])
-    total_games = int(latest_stats['Lifetime Games Played'])
+    total_wins = filtered_data['Match Outcome'].str.lower().str.contains('victory').sum()
+    total_games = len(filtered_data)
     win_rate = round((total_wins / (total_games or 1)) * 100, 1)  # Use 1 if total_games is 0
-    total_shots = latest_stats['Lifetime Hits'] + latest_stats['Lifetime Misses']
-    accuracy = round((latest_stats['Lifetime Hits'] / (total_shots or 1)) * 100, 1)  # Use 1 if total_shots is 0
+    total_shots = filtered_data['Shots'].sum()
+    total_hits = filtered_data['Hits'].sum()
+    accuracy = round((total_hits / (total_shots or 1)) * 100, 1)  # Use 1 if total_shots is 0
     avg_score = int(round(filtered_data['Score'].mean(), 0))
     
     # Calculate streaks
