@@ -2,7 +2,7 @@ import datetime
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from dash import Dash, html, dcc, Input, Output, State, callback, callback_context, no_update
+from dash import Dash, html, dcc, Input, Output, State, callback, callback_context, no_update, dash
 import pandas as pd
 
 # Global variables
@@ -901,7 +901,7 @@ def load_example_data(n_clicks):
         map_values = sorted(data['Map'].unique())
 
         # Update the checklist values
-        app.callback_context.outputs_list.extend([
+        dash.callback_context.outputs_list.extend([
             {
                 'id': 'operator-checklist',
                 'property': 'value',
@@ -1016,7 +1016,7 @@ def update_data(contents, start_date, end_date, filename):
             map_values = sorted(data['Map'].unique())
 
             # Update the checklist values
-            app.callback_context.outputs_list.extend([
+            dash.callback_context.outputs_list.extend([
                 {
                     'id': 'operator-checklist',
                     'property': 'value',
