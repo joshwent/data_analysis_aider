@@ -5,7 +5,8 @@ import plotly.graph_objects as go
 from dash import Dash, html, dcc, Input, Output, State, callback, callback_context, no_update
 import pandas as pd
 
-# Global data variable
+# Global variables
+global data
 data = pd.read_csv('data2.csv')
 import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
@@ -850,6 +851,7 @@ def map_select_all(select_clicks, deselect_clicks, options):
     prevent_initial_call=True
 )
 def update_data(contents, start_date, end_date, filename):
+    global data
     ctx = callback_context
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
     
@@ -859,7 +861,7 @@ def update_data(contents, start_date, end_date, filename):
             start_date = data['Local Time'].min().replace(tzinfo=None)
         if end_date is None:
             end_date = data['Local Time'].max().replace(tzinfo=None)
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, start_date, end_date
+        return no_update, no_update, no_update, no_update, no_update, no_update, start_date, end_date
     
     # Handle file upload
     if contents is None:
@@ -874,8 +876,8 @@ def update_data(contents, start_date, end_date, filename):
     try:
         if 'html' in filename.lower():
             # Parse HTML file and update global data
-            data = parse_html_file(decoded.decode('utf-8'))
             global data
+            data = parse_html_file(decoded.decode('utf-8'))
             
             # Apply the same filters as initial CSV data
             data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
