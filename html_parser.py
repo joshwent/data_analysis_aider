@@ -7,8 +7,13 @@ def parse_html_file(html_content):
     """Parse the HTML content and extract game data from the specific table."""
     soup = BeautifulSoup(html_content, 'html.parser')
     
-    # Find the h1 heading with "Call of Duty: Black Ops 6"
-    cod_heading = soup.find('h1', string="Call of Duty: Black Ops 6")
+    # Find the section with "Copy of Your Data"
+    data_section = soup.find('h1', string="Copy of Your Data")
+    if not data_section:
+        raise ValueError("Could not find Copy of Your Data section")
+        
+    # Find the Call of Duty section
+    cod_heading = data_section.find_next('h1', string="Call of Duty: Black Ops 6")
     if not cod_heading:
         raise ValueError("Could not find Call of Duty: Black Ops 6 heading")
         
