@@ -78,6 +78,10 @@ date_range = dcc.DatePickerRange(
     }
 )
 
+# Set default plot dimensions
+PLOT_HEIGHT = 300
+PLOT_WIDTH = 550  # Reduced from 600
+    
 # Create plots using hvPlot
 def get_filtered_data(operators, game_types, maps, date_range):
     # Return empty DataFrame if any filter category is empty
@@ -153,8 +157,8 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
         x='Local Time',
         y='Skill',
         title="Skill Progression Over Time",
-        height=300,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color_discrete_sequence=['#5B9AFF']
     )
     skill_plot.update_traces(line_width=2)
@@ -174,8 +178,8 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
         x='Hour_12',
         y='KD_Ratio',
         title="Average K/D Ratio by Hour",
-        height=300,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color_discrete_sequence=['#00ff00']
     )
     kd_by_hour.update_layout(
@@ -196,8 +200,8 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
         x='Accuracy',
         nbins=30,
         title="Accuracy Distribution",
-        height=300,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color_discrete_sequence=['orange']
     )
     accuracy_hist.update_layout(
@@ -212,8 +216,8 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
         x='KD_Ratio',
         nbins=30,
         title="K/D Ratio Distribution",
-        height=300,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color_discrete_sequence=['red']
     )
     kd_hist.update_layout(
@@ -228,8 +232,8 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
         x='Skill',
         nbins=30,
         title="Skill Distribution",
-        height=300,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color_discrete_sequence=['cyan']
     )
     skill_hist.update_layout(
@@ -272,8 +276,8 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
         x='Damage Taken',
         y='Damage Done',
         title="Damage Efficiency",
-        height=300,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color='Match Outcome',
         trendline="ols"
     )
@@ -288,8 +292,8 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
         values=outcome_stats.values,
         names=outcome_stats.index,
         title="Match Outcomes Distribution",
-        height=300,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color_discrete_sequence=px.colors.qualitative.Set3
     )
     outcome_plot.update_layout(template="plotly_dark")
@@ -311,7 +315,7 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
         y='KD',
         title="K/D Ratio by Map",
         height=400,
-        width=600,
+        width=PLOT_WIDTH,
         color_discrete_sequence=['purple']
     )
     map_performance.update_layout(
@@ -377,7 +381,7 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
             'padding': '1rem',
             'background': 'var(--bg-dark)',
             'margin': '0 auto',
-            'max-width': '1200px'
+            'max-width': '1150px'
         }
     )
     return layout
