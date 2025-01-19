@@ -381,20 +381,23 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     date_range = (start_date, end_date)
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
-    # Calculate basic stats
+    # Calculate basic stats using most recent lifetime values
     avg_skill = round(filtered_data['Skill'].mean(), 2)
-    total_kills = int(filtered_data['Kills'].sum())
-    total_deaths = int(filtered_data['Deaths'].sum())
+    latest_stats = filtered_data.iloc[-1]
+    total_kills = int(latest_stats['Lifetime Kills'])
+    total_deaths = int(latest_stats['Lifetime Deaths'])
     kd_ratio = round(total_kills / total_deaths, 2)
-    win_rate = round((filtered_data['Match Outcome'] == 'win').mean() * 100, 1)
-    accuracy = round((filtered_data['Hits'].sum() / filtered_data['Shots'].sum()) * 100, 1)
+    total_wins = int(latest_stats['Lifetime Wins'])
+    total_games = int(latest_stats['Lifetime Games Played'])
+    win_rate = round((total_wins / total_games) * 100, 1)
+    accuracy = round((latest_stats['Lifetime Hits'] / (latest_stats['Lifetime Hits'] + latest_stats['Lifetime Misses'])) * 100, 1)
     avg_score = int(round(filtered_data['Score'].mean(), 0))
     
     # Calculate streaks
     kill_streak = int(filtered_data['Longest Streak'].max())
     
-    # Calculate time-based stats
-    total_seconds = int(filtered_data['Lifetime Time Played'].sum())
+    # Calculate time-based stats from lifetime value
+    total_seconds = int(latest_stats['Lifetime Time Played'])
     total_minutes = total_seconds // 60
     kills_per_min = round((total_kills / (total_minutes or 1)), 2)
     
