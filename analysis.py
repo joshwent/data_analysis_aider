@@ -7,7 +7,7 @@ import pandas as pd
 
 # Global variables
 global data
-data = pd.read_csv('data2.csv')
+data = pd.DataFrame()  # Start with empty DataFrame
 import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
 
@@ -731,6 +731,16 @@ app.layout = dbc.Container([
             html.H2("Data Import",
                    style={'color': 'var(--text-primary)', 
                          'marginBottom': '1rem'}),
+            dbc.Button(
+                "Load Example Data",
+                id='load-example-data',
+                color="secondary",
+                className="mb-3",
+                style={'width': '100%'}
+            ),
+            html.Div("- or -", 
+                    className="text-center mb-3",
+                    style={'color': 'var(--text-secondary)'}),
             dcc.Upload(
                 id='upload-data',
                 children=html.Div([
@@ -833,6 +843,75 @@ def map_select_all(select_clicks, deselect_clicks, options):
     elif button_id == 'map-deselect-all':
         return []
     return []
+
+# Callback for loading example data
+@callback(
+    [Output('upload-data', 'children'),
+     Output('operator-checklist', 'options'),
+     Output('game-type-checklist', 'options'),
+     Output('map-checklist', 'options'),
+     Output('date-range-picker', 'min_date_allowed'),
+     Output('date-range-picker', 'max_date_allowed'),
+     Output('date-range-picker', 'start_date'),
+     Output('date-range-picker', 'end_date')],
+    Input('load-example-data', 'n_clicks'),
+    prevent_initial_call=True
+)
+def load_example_data(n_clicks):
+    global data
+    if n_clicks is None:
+        return no_update
+        
+    try:
+        # Load example data from data2.csv
+        data = pd.read_csv('data2.csv')
+        
+        # Apply the same filters as initial CSV data
+        data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
+        data = data[data['Game Type'] != 'Training Course']
+        data = data[data['Game Type'] != 'Ran-snack']
+        data = data[data['Game Type'] != 'Stop and Go']
+        data = data[data['Game Type'] != 'Red Light Green Light']
+        data = data[data['Game Type'] != 'Prop Hunt']
+        
+        # Convert timezone
+        data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp'])
+        data['UTC Timestamp'] = data['UTC Timestamp'].dt.tz_localize('UTC')
+        local_tz = datetime.datetime.now().astimezone().tzinfo
+        data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
+        
+        # Update filter options
+        operator_options = [{"label": opt, "value": opt} for opt in sorted(data['Operator'].unique())]
+        game_type_options = [{"label": opt, "value": opt} for opt in sorted(data['Game Type'].unique())]
+        map_options = [{"label": opt, "value": opt} for opt in sorted(data['Map'].unique())]
+        
+        # Update date range
+        min_date = data['Local Time'].min().replace(tzinfo=None)
+        max_date = data['Local Time'].max().replace(tzinfo=None)
+        
+        return (
+            html.Div([
+                html.I(className="fas fa-check-circle", style={'color': 'green', 'marginRight': '10px'}),
+                'Example data loaded successfully'
+            ]),
+            operator_options,
+            game_type_options,
+            map_options,
+            min_date,
+            max_date,
+            min_date,
+            max_date
+        )
+            
+    except Exception as e:
+        return (
+            html.Div([
+                html.I(className="fas fa-exclamation-circle", style={'color': 'red', 'marginRight': '10px'}),
+                'Error loading example data: ',
+                html.Pre(str(e))
+            ]),
+            [], [], [], None, None, None, None
+        )
 
 # Combined callback for file upload and date picker
 @callback(
