@@ -427,58 +427,97 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     minutes = (remaining_seconds % (60 * 60)) // 60
     total_time = f"{days}d {hours}h {minutes}m"
     
-    return dbc.Card([
+    # Create two cards: one for lifetime stats and one for filtered stats
+    lifetime_card = dbc.Card([
         dbc.CardBody([
-            html.H3("Performance Summary", 
+            html.H3("Lifetime Statistics", 
                     className="text-center mb-4",
                     style={'color': 'var(--accent-color)', 'fontSize': '1.4rem'}),
             
             dbc.Row([
-                # Performance metrics
                 dbc.Col([
                     html.Div([
-                        html.Strong("Skill Rating"),
-                        html.Div(f"{avg_skill}")
-                    ], className="text-center mb-3")
-                ]),
-                dbc.Col([
-                    html.Div([
-                        html.Strong("K/D Ratio"),
+                        html.Strong("Total K/D"),
                         html.Div(f"{kd_ratio}")
                     ], className="text-center mb-3")
                 ]),
                 dbc.Col([
                     html.Div([
-                        html.Strong("Win Rate"),
+                        html.Strong("Overall Win Rate"),
                         html.Div(f"{win_rate}%")
                     ], className="text-center mb-3")
                 ]),
                 dbc.Col([
                     html.Div([
-                        html.Strong("Accuracy"),
+                        html.Strong("Lifetime Accuracy"),
                         html.Div(f"{accuracy}%")
+                    ], className="text-center mb-3")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Total Play Time"),
+                        html.Div(f"{total_time}")
+                    ], className="text-center mb-3")
+                ]),
+            ])
+        ])
+    ], className="stats-card mb-4")
+
+    # Calculate filtered-specific stats
+    filtered_avg_skill = round(filtered_data['Skill'].mean(), 2)
+    filtered_kills = filtered_data['Kills'].sum()
+    filtered_deaths = filtered_data['Deaths'].sum()
+    filtered_kd = round(filtered_kills / (filtered_deaths or 1), 2)
+    filtered_wins = len(filtered_data[filtered_data['Match Outcome'] == 'Victory'])
+    filtered_total = len(filtered_data)
+    filtered_winrate = round((filtered_wins / filtered_total) * 100, 1)
+    filtered_accuracy = round((filtered_data['Hits'].sum() / filtered_data['Shots'].sum()) * 100, 1)
+    filtered_streak = int(filtered_data['Longest Streak'].max())
+    
+    filtered_card = dbc.Card([
+        dbc.CardBody([
+            html.H3("Filtered Performance", 
+                    className="text-center mb-4",
+                    style={'color': 'var(--accent-color)', 'fontSize': '1.4rem'}),
+            
+            dbc.Row([
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Avg Skill Rating"),
+                        html.Div(f"{filtered_avg_skill}")
+                    ], className="text-center mb-3")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Filtered K/D"),
+                        html.Div(f"{filtered_kd}")
+                    ], className="text-center mb-3")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Win Rate"),
+                        html.Div(f"{filtered_winrate}%")
+                    ], className="text-center mb-3")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Accuracy"),
+                        html.Div(f"{filtered_accuracy}%")
                     ], className="text-center mb-3")
                 ]),
             ]),
             
             dbc.Row([
-                # Additional stats
                 dbc.Col([
                     html.Div([
                         html.Strong("Best Streak"),
-                        html.Div(f"{kill_streak}")
+                        html.Div(f"{filtered_streak}")
                     ], className="text-center")
                 ]),
                 dbc.Col([
                     html.Div([
-                        html.Strong("Kills/min"),
-                        html.Div(f"{kills_per_min}")
-                    ], className="text-center")
-                ]),
-                dbc.Col([
-                    html.Div([
-                        html.Strong("Play Time"),
-                        html.Div(f"{total_time}")
+                        html.Strong("Matches"),
+                        html.Div(f"{filtered_total}")
                     ], className="text-center")
                 ]),
             ])
