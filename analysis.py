@@ -1,3 +1,4 @@
+import datetime
 import pandas as pd
 import panel as pn
 import plotly.express as px
@@ -11,11 +12,6 @@ pn.config.theme = 'dark'
 # Load the CSV data
 csv_file = 'data.csv'  # Replace with your CSV file path
 data = pd.read_csv(csv_file)
-
-# Inspect the data
-print(data.head())
-
-import datetime
 
 # Convert UTC timestamps to local time and ensure proper timezone handling
 data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp']).dt.tz_localize('UTC')
