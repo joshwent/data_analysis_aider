@@ -895,6 +895,11 @@ def load_example_data(n_clicks):
         min_date = data['Local Time'].min().replace(tzinfo=None)
         max_date = data['Local Time'].max().replace(tzinfo=None)
         
+        # Get all values for initial selection
+        operator_values = sorted(data['Operator'].unique())
+        game_type_values = sorted(data['Game Type'].unique())
+        map_values = sorted(data['Map'].unique())
+
         return (
             html.Div([
                 html.I(className="fas fa-check-circle", style={'color': 'green', 'marginRight': '10px'}),
@@ -908,6 +913,16 @@ def load_example_data(n_clicks):
             min_date,
             max_date
         )
+
+        # Update the checklist values to select all
+        for checklist in ['operator-checklist', 'game-type-checklist', 'map-checklist']:
+            app.callback_context.outputs_list.append({
+                'id': checklist,
+                'property': 'value',
+                'value': operator_values if checklist == 'operator-checklist' else 
+                        game_type_values if checklist == 'game-type-checklist' else 
+                        map_values
+            })
             
     except Exception as e:
         return (
@@ -986,6 +1001,11 @@ def update_data(contents, start_date, end_date, filename):
             min_date = data['Local Time'].min().replace(tzinfo=None)
             max_date = data['Local Time'].max().replace(tzinfo=None)
             
+            # Get all values for initial selection
+            operator_values = sorted(data['Operator'].unique())
+            game_type_values = sorted(data['Game Type'].unique())
+            map_values = sorted(data['Map'].unique())
+
             return (
                 html.Div([
                     html.I(className="fas fa-check-circle", style={'color': 'green', 'marginRight': '10px'}),
@@ -999,6 +1019,16 @@ def update_data(contents, start_date, end_date, filename):
                 min_date,
                 max_date
             )
+
+            # Update the checklist values to select all
+            for checklist in ['operator-checklist', 'game-type-checklist', 'map-checklist']:
+                app.callback_context.outputs_list.append({
+                    'id': checklist,
+                    'property': 'value',
+                    'value': operator_values if checklist == 'operator-checklist' else 
+                            game_type_values if checklist == 'game-type-checklist' else 
+                            map_values
+                })
             
     except Exception as e:
         return (
