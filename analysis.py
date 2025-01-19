@@ -78,8 +78,8 @@ date_range = dcc.DatePickerRange(
 
 # Create plots using hvPlot
 def get_filtered_data(operators, game_types, maps, date_range):
-    # Return empty DataFrame if no filters are selected
-    if not operators and not game_types and not maps:
+    # Return empty DataFrame if any filter category is empty
+    if not operators or not game_types or not maps:
         return pd.DataFrame(columns=data.columns)
         
     filtered = data.copy()
