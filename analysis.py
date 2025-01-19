@@ -846,12 +846,12 @@ def map_select_all(select_clicks, deselect_clicks, options):
 
 # Callback for loading example data
 @callback(
-    [Output('upload-data', 'children'),
-     Output('operator-checklist', 'options'),
-     Output('game-type-checklist', 'options'),
-     Output('map-checklist', 'options'),
-     Output('date-range-picker', 'min_date_allowed'),
-     Output('date-range-picker', 'max_date_allowed'),
+    [Output('upload-data', 'children', allow_duplicate=True),
+     Output('operator-checklist', 'options', allow_duplicate=True),
+     Output('game-type-checklist', 'options', allow_duplicate=True),
+     Output('map-checklist', 'options', allow_duplicate=True),
+     Output('date-range-picker', 'min_date_allowed', allow_duplicate=True),
+     Output('date-range-picker', 'max_date_allowed', allow_duplicate=True),
      Output('date-range-picker', 'start_date', allow_duplicate=True),
      Output('date-range-picker', 'end_date', allow_duplicate=True)],
     Input('load-example-data', 'n_clicks'),
