@@ -875,6 +875,8 @@ def update_data(contents, filename):
             data = data[data['Game Type'] != 'Prop Hunt']
             
             # Convert timezone
+            data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp'])
+            data['UTC Timestamp'] = data['UTC Timestamp'].dt.tz_localize('UTC')
             local_tz = datetime.datetime.now().astimezone().tzinfo
             data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
             
