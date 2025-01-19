@@ -845,19 +845,16 @@ def set_date_picker_defaults(start_date, end_date):
 
 # Callback for file upload
 @callback(
-    [Output('stats-container', 'children'),
-     Output('plots-container', 'children')],
+    Output('upload-data', 'children'),
     [Input('upload-data', 'contents')],
     [State('upload-data', 'filename')]
 )
 def update_data(contents, filename):
     if contents is None:
-        return html.Div("Upload an HTML file to begin analysis", 
-                       style={'text-align': 'center', 
-                             'padding': '20px',
-                             'color': 'var(--text-secondary)'}), None
-    
-    global data
+        return html.Div([
+            'Drag and Drop or ',
+            html.A('Select HTML File')
+        ])
     
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
@@ -882,14 +879,17 @@ def update_data(contents, filename):
             local_tz = datetime.datetime.now().astimezone().tzinfo
             data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
             
-            # Return initial stats and plots
-            return create_stats([], [], [], None, None), create_plots([], [], [], None, None)
+            return html.Div([
+                html.I(className="fas fa-check-circle", style={'color': 'green', 'marginRight': '10px'}),
+                f'Successfully loaded {filename}'
+            ])
             
     except Exception as e:
         return html.Div([
-            'There was an error processing this file.',
+            html.I(className="fas fa-exclamation-circle", style={'color': 'red', 'marginRight': '10px'}),
+            'Error processing file: ',
             html.Pre(str(e))
-        ]), None
+        ])
 
 # Run the app
 if __name__ == '__main__':
