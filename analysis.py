@@ -759,7 +759,13 @@ app.layout = dbc.Container([
                 },
                 multiple=False
             ),
-            html.Div(id='upload-status', style={'marginBottom': '10px'})
+            dcc.Loading(
+                id="loading-upload",
+                type="circle",
+                children=[
+                    html.Div(id='upload-status', style={'marginBottom': '10px'})
+                ]
+            )
         ], width=12, style={
             'background': 'var(--bg-card)',
             'padding': '20px',
