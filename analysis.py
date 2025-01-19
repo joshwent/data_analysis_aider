@@ -383,7 +383,7 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     
     # Calculate basic stats using most recent lifetime values
     avg_skill = round(filtered_data['Skill'].mean(), 2)
-    latest_stats = filtered_data.iloc[-1]
+    latest_stats = filtered_data.sort_values('UTC Timestamp').iloc[-1]
     total_kills = int(latest_stats['Lifetime Kills'])
     total_deaths = int(latest_stats['Lifetime Deaths'])
     kd_ratio = round(total_kills / total_deaths, 2)
