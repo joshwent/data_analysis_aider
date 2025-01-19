@@ -74,7 +74,8 @@ date_range = dcc.DatePickerRange(
         'background-color': 'rgb(30, 30, 30)',
         'padding': '10px',
         'border-radius': '4px',
-        'margin-top': '20px'
+        'margin-top': '20px',
+        'width': '100%'
     }
 )
 
