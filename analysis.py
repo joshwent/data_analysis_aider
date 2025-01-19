@@ -12,9 +12,12 @@ app = Dash(__name__,
           meta_tags=[{'name': 'viewport',
                      'content': 'width=device-width, initial-scale=1.0'}])
 
-# Load the CSV data
-csv_file = 'data.csv'  # Replace with your CSV file path
-data = pd.read_csv(csv_file)
+from html_parser import parse_html_file
+import base64
+import io
+
+# Initialize empty DataFrame
+data = pd.DataFrame()
 
 # Remove unwanted game type
 data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
@@ -715,6 +718,37 @@ body {
 # Define the app layout
 app.layout = dbc.Container([
     dbc.Row([
+        # File upload
+        dbc.Col([
+            html.H2("Data Import",
+                   style={'color': 'var(--text-primary)', 
+                         'marginBottom': '1rem'}),
+            dcc.Upload(
+                id='upload-data',
+                children=html.Div([
+                    'Drag and Drop or ',
+                    html.A('Select HTML File')
+                ]),
+                style={
+                    'width': '100%',
+                    'height': '60px',
+                    'lineHeight': '60px',
+                    'borderWidth': '1px',
+                    'borderStyle': 'dashed',
+                    'borderRadius': '5px',
+                    'textAlign': 'center',
+                    'margin': '10px 0'
+                },
+                multiple=False
+            )
+        ], width=12, style={
+            'background': 'var(--bg-card)',
+            'padding': '20px',
+            'borderRadius': '8px',
+            'marginBottom': '20px'
+        }),
+    ]),
+    dbc.Row([
         # Sidebar
         dbc.Col([
             html.H2("Filters", 
@@ -805,6 +839,51 @@ def set_date_picker_defaults(start_date, end_date):
     if end_date is None:
         end_date = data['Local Time'].max().replace(tzinfo=None)
     return start_date, end_date
+
+# Callback for file upload
+@callback(
+    [Output('stats-container', 'children'),
+     Output('plots-container', 'children')],
+    [Input('upload-data', 'contents')],
+    [State('upload-data', 'filename')]
+)
+def update_data(contents, filename):
+    if contents is None:
+        return html.Div("Upload an HTML file to begin analysis", 
+                       style={'text-align': 'center', 
+                             'padding': '20px',
+                             'color': 'var(--text-secondary)'}), None
+    
+    global data
+    
+    content_type, content_string = contents.split(',')
+    decoded = base64.b64decode(content_string)
+    
+    try:
+        if 'html' in filename.lower():
+            # Parse HTML file
+            data = parse_html_file(decoded.decode('utf-8'))
+            
+            # Remove unwanted game types
+            data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
+            data = data[data['Game Type'] != 'Training Course']
+            data = data[data['Game Type'] != 'Ran-snack']
+            data = data[data['Game Type'] != 'Stop and Go']
+            data = data[data['Game Type'] != 'Red Light Green Light']
+            data = data[data['Game Type'] != 'Prop Hunt']
+            
+            # Convert timezone
+            local_tz = datetime.datetime.now().astimezone().tzinfo
+            data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
+            
+            # Return initial stats and plots
+            return create_stats([], [], [], None, None), create_plots([], [], [], None, None)
+            
+    except Exception as e:
+        return html.Div([
+            'There was an error processing this file.',
+            html.Pre(str(e))
+        ]), None
 
 # Run the app
 if __name__ == '__main__':
