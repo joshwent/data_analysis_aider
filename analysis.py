@@ -18,31 +18,21 @@ data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
 print(data.columns)
 
 # Create filter widgets with checkboxes
-def create_checkbox_group(name, options, width=220):
-    select_all = pn.widgets.Checkbox(name='Select All', value=False, width=width)
-    checkbox_group = pn.widgets.CheckBoxGroup(
-        name=name,
-        options=sorted(options),
-        value=[],
-        inline=False,
-        width=width,
-        styles={
-            'background': 'var(--bg-card)',
-            'padding': '12px',
-            'border-radius': '8px',
-            'margin-bottom': '8px'
-        }
-    )
-    
-    def update_checkboxes(event):
-        if event.new:
-            checkbox_group.value = checkbox_group.options
-        else:
-            checkbox_group.value = []
-    
-    select_all.param.watch(update_checkboxes, 'value')
-    
-    return pn.Column(select_all, checkbox_group)
+def create_checkbox_group(id_prefix, name, options):
+    return html.Div([
+        dbc.Checkbox(
+            id=f"{id_prefix}-select-all",
+            label="Select All",
+            value=False,
+            className="mb-2"
+        ),
+        dbc.Checklist(
+            id=f"{id_prefix}-checklist",
+            options=[{"label": opt, "value": opt} for opt in sorted(options)],
+            value=[],
+            className="filter-checklist"
+        )
+    ], className="filter-group")
 
 operator_group = create_checkbox_group('Select Operators', list(data['Operator'].unique()))
 operator_select = operator_group[1]
