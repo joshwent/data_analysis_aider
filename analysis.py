@@ -395,21 +395,36 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     date_range = (start_date, end_date)
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
+    # Return empty stats if no data is loaded
+    if data.empty:
+        return html.Div([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H3("No Data Loaded", 
+                           className="text-center mb-4",
+                           style={'color': 'var(--accent-color)', 'fontSize': '1.4rem'}),
+                    html.Div("Please load data using the upload button or example data button above.",
+                            className="text-center",
+                            style={'color': 'var(--text-secondary)'})
+                ])
+            ], className="stats-card mb-4")
+        ])
+
     # Calculate stats from filtered data
-    total_kills = data['Lifetime Kills'].max()
-    total_deaths = data['Lifetime Deaths'].max()
+    total_kills = filtered_data['Kills'].sum() if not filtered_data.empty else 0
+    total_deaths = filtered_data['Deaths'].sum() if not filtered_data.empty else 0
     print(f"total kills: {total_kills}, total deaths: {total_deaths}")
     kd_ratio = round(total_kills / (total_deaths or 1), 2)  # Use 1 if total_deaths is 0
-    total_wins = data['Match Outcome'].str.lower().str.contains('win').sum()
-    total_games = len(data)
+    total_wins = filtered_data['Match Outcome'].str.lower().str.contains('win').sum() if not filtered_data.empty else 0
+    total_games = len(filtered_data)
     win_rate = round((total_wins / (total_games or 1)) * 100, 1)  # Use 1 if total_games is 0
-    total_shots = data['Shots'].sum()
-    total_hits = data['Hits'].sum()
+    total_shots = filtered_data['Shots'].sum() if not filtered_data.empty else 0
+    total_hits = filtered_data['Hits'].sum() if not filtered_data.empty else 0
     accuracy = round((total_hits / (total_shots or 1)) * 100, 1)  # Use 1 if total_shots is 0
-    avg_score = int(round(data['Score'].mean(), 0))
+    avg_score = int(round(filtered_data['Score'].mean(), 0)) if not filtered_data.empty else 0
     
-    # Get total time from lifetime stats
-    total_seconds = int(data['Lifetime Time Played'].max())
+    # Get total time played
+    total_seconds = filtered_data['Match Duration'].sum() if not filtered_data.empty else 0
     
     # Format total time
     days = total_seconds // (24 * 60 * 60)
