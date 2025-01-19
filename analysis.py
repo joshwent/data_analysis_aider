@@ -74,8 +74,9 @@ date_range = dcc.DatePickerRange(
     id='date-range-picker',
     min_date_allowed=data['Local Time'].min().replace(tzinfo=None),
     max_date_allowed=data['Local Time'].max().replace(tzinfo=None),
-    start_date=data['Local Time'].min().replace(tzinfo=None),
-    end_date=data['Local Time'].max().replace(tzinfo=None),
+    initial_visible_month=data['Local Time'].min().replace(tzinfo=None),
+    start_date=None,  # Will default to min when clicked
+    end_date=None,    # Will default to max when clicked
     style={
         'background-color': 'rgb(30, 30, 30)',
         'padding': '10px',
@@ -790,6 +791,20 @@ def map_select_all(select_clicks, deselect_clicks, options):
     elif button_id == 'map-deselect-all':
         return []
     return []
+
+# Callback for date picker defaults
+@callback(
+    [Output('date-range-picker', 'start_date'),
+     Output('date-range-picker', 'end_date')],
+    [Input('date-range-picker', 'start_date'),
+     Input('date-range-picker', 'end_date')]
+)
+def set_date_picker_defaults(start_date, end_date):
+    if start_date is None:
+        start_date = data['Local Time'].min().replace(tzinfo=None)
+    if end_date is None:
+        end_date = data['Local Time'].max().replace(tzinfo=None)
+    return start_date, end_date
 
 # Run the app
 if __name__ == '__main__':
