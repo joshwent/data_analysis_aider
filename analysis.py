@@ -846,91 +846,8 @@ def map_select_all(select_clicks, deselect_clicks, options):
         return []
     return []
 
-# Callback for loading example data
-@callback(
-    [Output('upload-data', 'children', allow_duplicate=True),
-     Output('operator-checklist', 'options', allow_duplicate=True),
-     Output('game-type-checklist', 'options', allow_duplicate=True),
-     Output('map-checklist', 'options', allow_duplicate=True),
-     Output('date-range-picker', 'min_date_allowed', allow_duplicate=True),
-     Output('date-range-picker', 'max_date_allowed', allow_duplicate=True),
-     Output('date-range-picker', 'start_date', allow_duplicate=True),
-     Output('date-range-picker', 'end_date', allow_duplicate=True),
-     Output('operator-checklist', 'value', allow_duplicate=True),
-     Output('game-type-checklist', 'value', allow_duplicate=True),
-     Output('map-checklist', 'value', allow_duplicate=True)],
-    Input('load-example-data', 'n_clicks'),
-    prevent_initial_call=True
-)
-def load_example_data(n_clicks):
-    global data
-    if n_clicks is None:
-        return no_update
-        
-    try:
-        # Load example data from data2.csv
-        data = pd.read_csv('data2.csv')
-        
-        # Apply the same filters as initial CSV data
-        data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
-        data = data[data['Game Type'] != 'Training Course']
-        data = data[data['Game Type'] != 'Ran-snack']
-        data = data[data['Game Type'] != 'Stop and Go']
-        data = data[data['Game Type'] != 'Red Light Green Light']
-        data = data[data['Game Type'] != 'Prop Hunt']
-        
-        # Convert timestamps and timezone
-        timestamp_columns = ['UTC Timestamp', 'Match Start Timestamp', 'Match End Timestamp']
-        for col in timestamp_columns:
-            if col in data.columns:
-                data[col] = pd.to_datetime(data[col])
-                data[col] = data[col].dt.tz_localize('UTC')
-        
-        local_tz = datetime.datetime.now().astimezone().tzinfo
-        data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
-        
-        # Update filter options
-        operator_options = [{"label": opt, "value": opt} for opt in sorted(data['Operator'].unique())]
-        game_type_options = [{"label": opt, "value": opt} for opt in sorted(data['Game Type'].unique())]
-        map_options = [{"label": opt, "value": opt} for opt in sorted(data['Map'].unique())]
-        
-        # Update date range
-        min_date = data['Local Time'].min().replace(tzinfo=None)
-        max_date = data['Local Time'].max().replace(tzinfo=None)
-        
-        # Get all values for initial selection
-        operator_values = sorted(data['Operator'].unique())
-        game_type_values = sorted(data['Game Type'].unique())
-        map_values = sorted(data['Map'].unique())
 
-        return (
-            html.Div([
-                html.I(className="fas fa-check-circle", style={'color': 'green', 'marginRight': '10px'}),
-                'Example data loaded successfully'
-            ]),
-            operator_options,
-            game_type_options,
-            map_options,
-            min_date,
-            max_date,
-            min_date,
-            max_date,
-            operator_values,  # Initial values for operator checklist
-            game_type_values,  # Initial values for game type checklist
-            map_values  # Initial values for map checklist
-        )
-            
-    except Exception as e:
-        return (
-            html.Div([
-                html.I(className="fas fa-exclamation-circle", style={'color': 'red', 'marginRight': '10px'}),
-                'Error loading example data: ',
-                html.Pre(str(e))
-            ]),
-            [], [], [], None, None, None, None, [], [], []  # Return empty lists for checklist values
-        )
-
-# Combined callback for file upload and date picker
+# Combined callback for file upload, example data, and date picker
 @callback(
     [Output('upload-data', 'children'),
      Output('operator-checklist', 'options'),
@@ -944,12 +861,13 @@ def load_example_data(n_clicks):
      Output('game-type-checklist', 'value', allow_duplicate=True),
      Output('map-checklist', 'value', allow_duplicate=True)],
     [Input('upload-data', 'contents'),
+     Input('load-example-data', 'n_clicks'),
      Input('date-range-picker', 'start_date'),
      Input('date-range-picker', 'end_date')],
     [State('upload-data', 'filename')],
     prevent_initial_call=True
 )
-def update_data(contents, start_date, end_date, filename):
+def update_data(contents, example_clicks, start_date, end_date, filename):
     global data
     ctx = callback_context
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
@@ -960,77 +878,107 @@ def update_data(contents, start_date, end_date, filename):
             start_date = data['Local Time'].min().replace(tzinfo=None)
         if end_date is None:
             end_date = data['Local Time'].max().replace(tzinfo=None)
-        return no_update, no_update, no_update, no_update, no_update, no_update, start_date, end_date
+        return no_update, no_update, no_update, no_update, no_update, no_update, start_date, end_date, no_update, no_update, no_update
+
+    # Reset data before processing new data
+    data = pd.DataFrame()
+
+    # Handle example data loading
+    if triggered_id == 'load-example-data' and example_clicks is not None:
+        try:
+            data = pd.read_csv('data2.csv')
+            success_message = 'Example data loaded successfully'
+        except Exception as e:
+            return (
+                html.Div([
+                    html.I(className="fas fa-exclamation-circle", style={'color': 'red', 'marginRight': '10px'}),
+                    'Error loading example data: ',
+                    html.Pre(str(e))
+                ]),
+                [], [], [], None, None, None, None, [], [], []
+            )
     
     # Handle file upload
-    if contents is None:
+    elif triggered_id == 'upload-data':
+        if contents is None:
+            return html.Div([
+                'Drag and Drop or ',
+                html.A('Select HTML File')
+            ]), [], [], [], None, None, None, None, [], [], []
+            
+        try:
+            content_type, content_string = contents.split(',')
+            decoded = base64.b64decode(content_string)
+            
+            if 'html' in filename.lower():
+                data = parse_html_file(decoded.decode('utf-8'))
+                success_message = f'Successfully loaded {filename}'
+            else:
+                raise ValueError("Please upload an HTML file")
+        except Exception as e:
+            return (
+                html.Div([
+                    html.I(className="fas fa-exclamation-circle", style={'color': 'red', 'marginRight': '10px'}),
+                    'Error processing file: ',
+                    html.Pre(str(e))
+                ]),
+                [], [], [], None, None, None, None, [], [], []
+            )
+    else:
         return html.Div([
             'Drag and Drop or ',
             html.A('Select HTML File')
-        ]), [], [], [], None, None, None, None
-    
-    content_type, content_string = contents.split(',')
-    decoded = base64.b64decode(content_string)
-    
-    try:
-        if 'html' in filename.lower():
-            # Parse HTML file and update global data
-            data = parse_html_file(decoded.decode('utf-8'))
-            
-            # Apply the same filters as initial CSV data
-            data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
-            data = data[data['Game Type'] != 'Training Course']
-            data = data[data['Game Type'] != 'Ran-snack']
-            data = data[data['Game Type'] != 'Stop and Go']
-            data = data[data['Game Type'] != 'Red Light Green Light']
-            data = data[data['Game Type'] != 'Prop Hunt']
-            
-            # Convert timezone
-            data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp'])
-            data['UTC Timestamp'] = data['UTC Timestamp'].dt.tz_localize('UTC')
-            local_tz = datetime.datetime.now().astimezone().tzinfo
-            data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
-            
-            # Update filter options
-            operator_options = [{"label": opt, "value": opt} for opt in sorted(data['Operator'].unique())]
-            game_type_options = [{"label": opt, "value": opt} for opt in sorted(data['Game Type'].unique())]
-            map_options = [{"label": opt, "value": opt} for opt in sorted(data['Map'].unique())]
-            
-            # Update date range
-            min_date = data['Local Time'].min().replace(tzinfo=None)
-            max_date = data['Local Time'].max().replace(tzinfo=None)
-            
-            # Get all values for initial selection
-            operator_values = sorted(data['Operator'].unique())
-            game_type_values = sorted(data['Game Type'].unique())
-            map_values = sorted(data['Map'].unique())
+        ]), [], [], [], None, None, None, None, [], [], []
 
-            return (
-                html.Div([
-                    html.I(className="fas fa-check-circle", style={'color': 'green', 'marginRight': '10px'}),
-                    f'Successfully loaded {filename}'
-                ]),
-                operator_options,
-                game_type_options,
-                map_options,
-                min_date,
-                max_date,
-                min_date,
-                max_date,
-                operator_values,  # Initial values for operator checklist
-                game_type_values,  # Initial values for game type checklist
-                map_values  # Initial values for map checklist
-            )
-            
-    except Exception as e:
-        return (
-            html.Div([
-                html.I(className="fas fa-exclamation-circle", style={'color': 'red', 'marginRight': '10px'}),
-                'Error processing file: ',
-                html.Pre(str(e))
-            ]),
-            [], [], [], None, None, None, None
-        )
+    # Apply common data processing
+    # Filter out unwanted game types
+    data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
+    data = data[data['Game Type'] != 'Training Course']
+    data = data[data['Game Type'] != 'Ran-snack']
+    data = data[data['Game Type'] != 'Stop and Go']
+    data = data[data['Game Type'] != 'Red Light Green Light']
+    data = data[data['Game Type'] != 'Prop Hunt']
+    
+    # Convert timestamps and timezone
+    timestamp_columns = ['UTC Timestamp', 'Match Start Timestamp', 'Match End Timestamp']
+    for col in timestamp_columns:
+        if col in data.columns:
+            data[col] = pd.to_datetime(data[col])
+            data[col] = data[col].dt.tz_localize('UTC')
+    
+    local_tz = datetime.datetime.now().astimezone().tzinfo
+    data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
+    
+    # Update filter options
+    operator_options = [{"label": opt, "value": opt} for opt in sorted(data['Operator'].unique())]
+    game_type_options = [{"label": opt, "value": opt} for opt in sorted(data['Game Type'].unique())]
+    map_options = [{"label": opt, "value": opt} for opt in sorted(data['Map'].unique())]
+    
+    # Update date range
+    min_date = data['Local Time'].min().replace(tzinfo=None)
+    max_date = data['Local Time'].max().replace(tzinfo=None)
+    
+    # Get all values for initial selection
+    operator_values = sorted(data['Operator'].unique())
+    game_type_values = sorted(data['Game Type'].unique())
+    map_values = sorted(data['Map'].unique())
+
+    return (
+        html.Div([
+            html.I(className="fas fa-check-circle", style={'color': 'green', 'marginRight': '10px'}),
+            success_message
+        ]),
+        operator_options,
+        game_type_options,
+        map_options,
+        min_date,
+        max_date,
+        min_date,
+        max_date,
+        operator_values,
+        game_type_values,
+        map_values
+    )
 
 # Run the app
 if __name__ == '__main__':
