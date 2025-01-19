@@ -2,7 +2,7 @@ import datetime
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from dash import Dash, html, dcc, Input, Output, State, callback
+from dash import Dash, html, dcc, Input, Output, State, callback, callback_context
 import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
 
@@ -26,12 +26,22 @@ print(data.columns)
 # Create filter widgets with checkboxes
 def create_checkbox_group(id_prefix, name, options):
     return html.Div([
-        dbc.Checkbox(
-            id=f"{id_prefix}-select-all",
-            label="Select All",
-            value=False,
-            className="mb-2"
-        ),
+        html.Div([
+            dbc.Button(
+                "Select All",
+                id=f"{id_prefix}-select-all",
+                color="primary",
+                size="sm",
+                className="me-2 mb-2"
+            ),
+            dbc.Button(
+                "Deselect All",
+                id=f"{id_prefix}-deselect-all", 
+                color="secondary",
+                size="sm",
+                className="mb-2"
+            ),
+        ]),
         dbc.Checklist(
             id=f"{id_prefix}-checklist",
             options=[{"label": opt, "value": opt} for opt in sorted(options)],
@@ -648,6 +658,58 @@ app.layout = dbc.Container([
         })
     ])
 ], fluid=True, style={'maxWidth': '1400px'})
+
+# Callbacks for select/deselect all buttons
+@callback(
+    Output('operator-checklist', 'value'),
+    [Input('operator-select-all', 'n_clicks'),
+     Input('operator-deselect-all', 'n_clicks')],
+    [State('operator-checklist', 'options')]
+)
+def operator_select_all(select_clicks, deselect_clicks, options):
+    ctx = callback_context
+    if not ctx.triggered:
+        return []
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    if button_id == 'operator-select-all':
+        return [opt['value'] for opt in options]
+    elif button_id == 'operator-deselect-all':
+        return []
+    return []
+
+@callback(
+    Output('game-type-checklist', 'value'),
+    [Input('game-type-select-all', 'n_clicks'),
+     Input('game-type-deselect-all', 'n_clicks')],
+    [State('game-type-checklist', 'options')]
+)
+def game_type_select_all(select_clicks, deselect_clicks, options):
+    ctx = callback_context
+    if not ctx.triggered:
+        return []
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    if button_id == 'game-type-select-all':
+        return [opt['value'] for opt in options]
+    elif button_id == 'game-type-deselect-all':
+        return []
+    return []
+
+@callback(
+    Output('map-checklist', 'value'),
+    [Input('map-select-all', 'n_clicks'),
+     Input('map-deselect-all', 'n_clicks')],
+    [State('map-checklist', 'options')]
+)
+def map_select_all(select_clicks, deselect_clicks, options):
+    ctx = callback_context
+    if not ctx.triggered:
+        return []
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    if button_id == 'map-select-all':
+        return [opt['value'] for opt in options]
+    elif button_id == 'map-deselect-all':
+        return []
+    return []
 
 # Run the app
 if __name__ == '__main__':
