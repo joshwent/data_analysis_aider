@@ -876,9 +876,13 @@ def load_example_data(n_clicks):
         data = data[data['Game Type'] != 'Red Light Green Light']
         data = data[data['Game Type'] != 'Prop Hunt']
         
-        # Convert timezone
-        data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp'])
-        data['UTC Timestamp'] = data['UTC Timestamp'].dt.tz_localize('UTC')
+        # Convert timestamps and timezone
+        timestamp_columns = ['UTC Timestamp', 'Match Start Timestamp', 'Match End Timestamp']
+        for col in timestamp_columns:
+            if col in data.columns:
+                data[col] = pd.to_datetime(data[col])
+                data[col] = data[col].dt.tz_localize('UTC')
+        
         local_tz = datetime.datetime.now().astimezone().tzinfo
         data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
         
