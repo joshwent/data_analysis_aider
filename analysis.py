@@ -845,7 +845,14 @@ def set_date_picker_defaults(start_date, end_date):
 
 # Callback for file upload
 @callback(
-    Output('upload-data', 'children'),
+    [Output('upload-data', 'children'),
+     Output('operator-checklist', 'options'),
+     Output('game-type-checklist', 'options'),
+     Output('map-checklist', 'options'),
+     Output('date-range-picker', 'min_date_allowed'),
+     Output('date-range-picker', 'max_date_allowed'),
+     Output('date-range-picker', 'start_date'),
+     Output('date-range-picker', 'end_date')],
     [Input('upload-data', 'contents')],
     [State('upload-data', 'filename')]
 )
@@ -854,7 +861,7 @@ def update_data(contents, filename):
         return html.Div([
             'Drag and Drop or ',
             html.A('Select HTML File')
-        ])
+        ]), [], [], [], None, None, None, None
     
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
@@ -879,17 +886,38 @@ def update_data(contents, filename):
             local_tz = datetime.datetime.now().astimezone().tzinfo
             data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
             
-            return html.Div([
-                html.I(className="fas fa-check-circle", style={'color': 'green', 'marginRight': '10px'}),
-                f'Successfully loaded {filename}'
-            ])
+            # Update filter options
+            operator_options = [{"label": opt, "value": opt} for opt in sorted(data['Operator'].unique())]
+            game_type_options = [{"label": opt, "value": opt} for opt in sorted(data['Game Type'].unique())]
+            map_options = [{"label": opt, "value": opt} for opt in sorted(data['Map'].unique())]
+            
+            # Update date range
+            min_date = data['Local Time'].min().replace(tzinfo=None)
+            max_date = data['Local Time'].max().replace(tzinfo=None)
+            
+            return (
+                html.Div([
+                    html.I(className="fas fa-check-circle", style={'color': 'green', 'marginRight': '10px'}),
+                    f'Successfully loaded {filename}'
+                ]),
+                operator_options,
+                game_type_options,
+                map_options,
+                min_date,
+                max_date,
+                min_date,
+                max_date
+            )
             
     except Exception as e:
-        return html.Div([
-            html.I(className="fas fa-exclamation-circle", style={'color': 'red', 'marginRight': '10px'}),
-            'Error processing file: ',
-            html.Pre(str(e))
-        ])
+        return (
+            html.Div([
+                html.I(className="fas fa-exclamation-circle", style={'color': 'red', 'marginRight': '10px'}),
+                'Error processing file: ',
+                html.Pre(str(e))
+            ]),
+            [], [], [], None, None, None, None
+        )
 
 # Run the app
 if __name__ == '__main__':
