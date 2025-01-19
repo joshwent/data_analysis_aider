@@ -394,13 +394,15 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     kill_streak = int(filtered_data['Longest Streak'].max())
     
     # Calculate time-based stats
-    total_minutes = int(filtered_data['Lifetime Time Played'].sum())
-    kills_per_min = round((total_kills / total_minutes * 60), 2)
+    total_seconds = int(filtered_data['Lifetime Time Played'].sum())
+    total_minutes = total_seconds // 60
+    kills_per_min = round((total_kills / (total_minutes or 1)), 2)
     
     # Format total time
-    days = total_minutes // (24 * 60)
-    hours = (total_minutes % (24 * 60)) // 60
-    minutes = total_minutes % 60
+    days = total_seconds // (24 * 60 * 60)
+    remaining_seconds = total_seconds % (24 * 60 * 60)
+    hours = remaining_seconds // (60 * 60)
+    minutes = (remaining_seconds % (60 * 60)) // 60
     total_time = f"{days}d {hours}h {minutes}m"
     
     return dbc.Card([
