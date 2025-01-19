@@ -400,16 +400,16 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
                              'color': 'var(--text-secondary)'})
     
     # Calculate stats from filtered data
-    total_kills = filtered_data['Kills'].sum()
-    total_deaths = filtered_data['Deaths'].sum()
+    total_kills = data['Lifetime Kills'].sum()
+    total_deaths = data['Lifetime Deaths'].sum()
     kd_ratio = round(total_kills / (total_deaths or 1), 2)  # Use 1 if total_deaths is 0
-    total_wins = filtered_data['Match Outcome'].str.lower().str.contains('victory').sum()
-    total_games = len(filtered_data)
+    total_wins = data['Match Outcome'].str.lower().str.contains('win').sum()
+    total_games = len(data)
     win_rate = round((total_wins / (total_games or 1)) * 100, 1)  # Use 1 if total_games is 0
-    total_shots = filtered_data['Shots'].sum()
-    total_hits = filtered_data['Hits'].sum()
+    total_shots = data['Shots'].sum()
+    total_hits = data['Hits'].sum()
     accuracy = round((total_hits / (total_shots or 1)) * 100, 1)  # Use 1 if total_shots is 0
-    avg_score = int(round(filtered_data['Score'].mean(), 0))
+    avg_score = int(round(data['Score'].mean(), 0))
     
     # Calculate streaks
     kill_streak = int(filtered_data['Longest Streak'].max())
@@ -470,7 +470,7 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     filtered_kills = filtered_data['Kills'].sum()
     filtered_deaths = filtered_data['Deaths'].sum()
     filtered_kd = round(filtered_kills / (filtered_deaths or 1), 2)
-    filtered_wins = filtered_data['Match Outcome'].str.lower().str.contains('victory').sum()
+    filtered_wins = filtered_data['Match Outcome'].str.lower().str.contains('win').sum()
     filtered_total = len(filtered_data)
     filtered_winrate = round((filtered_wins / (filtered_total or 1)) * 100, 1)  # Use 1 if filtered_total is 0
     filtered_accuracy = round((filtered_data['Hits'].sum() / filtered_data['Shots'].sum()) * 100, 1)
