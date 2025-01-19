@@ -743,6 +743,7 @@ app.layout = dbc.Container([
             html.Div("- or -", 
                     className="text-center mb-3",
                     style={'color': 'var(--text-secondary)'}),
+            html.Div(id='upload-status', style={'marginBottom': '10px'}),
             dcc.Upload(
                 id='upload-data',
                 children=html.Div([
@@ -849,7 +850,7 @@ def map_select_all(select_clicks, deselect_clicks, options):
 
 # Combined callback for file upload, example data, and date picker
 @callback(
-    [Output('upload-data', 'children'),
+    [Output('upload-status', 'children'),
      Output('operator-checklist', 'options'),
      Output('game-type-checklist', 'options'),
      Output('map-checklist', 'options'),
@@ -901,10 +902,7 @@ def update_data(contents, example_clicks, start_date, end_date, filename):
     # Handle file upload
     elif triggered_id == 'upload-data':
         if contents is None:
-            return html.Div([
-                'Drag and Drop or ',
-                html.A('Select HTML File')
-            ]), [], [], [], None, None, None, None, [], [], []
+            return html.Div(), [], [], [], None, None, None, None, [], [], []
             
         try:
             content_type, content_string = contents.split(',')
@@ -925,10 +923,7 @@ def update_data(contents, example_clicks, start_date, end_date, filename):
                 [], [], [], None, None, None, None, [], [], []
             )
     else:
-        return html.Div([
-            'Drag and Drop or ',
-            html.A('Select HTML File')
-        ]), [], [], [], None, None, None, None, [], [], []
+        return html.Div(), [], [], [], None, None, None, None, [], [], []
 
     # Apply common data processing
     # Filter out unwanted game types
