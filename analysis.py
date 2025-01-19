@@ -118,6 +118,13 @@ def get_filtered_data(operators, game_types, maps, date_range):
      Input('date-range-picker', 'end_date')]
 )
 def create_plots(operator, game_type, map_name, start_date, end_date):
+    # Return empty div if no filters are selected
+    if not operator and not game_type and not map_name:
+        return html.Div("Select filters to display charts", 
+                       style={'text-align': 'center', 
+                             'padding': '20px',
+                             'color': 'var(--text-secondary)'})
+    
     date_range = (start_date, end_date)
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
@@ -378,6 +385,13 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
      Input('date-range-picker', 'end_date')]
 )
 def create_stats(operator, game_type, map_name, start_date, end_date):
+    # Return empty div if no filters are selected
+    if not operator and not game_type and not map_name:
+        return html.Div("Select filters to display statistics", 
+                       style={'text-align': 'center', 
+                             'padding': '20px',
+                             'color': 'var(--text-secondary)'})
+    
     date_range = (start_date, end_date)
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
@@ -680,7 +694,7 @@ app.layout = dbc.Container([
 def operator_select_all(select_clicks, deselect_clicks, options):
     ctx = callback_context
     if not ctx.triggered:
-        return []
+        return [opt['value'] for opt in options]  # Select all by default
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
     if button_id == 'operator-select-all':
         return [opt['value'] for opt in options]
@@ -697,7 +711,7 @@ def operator_select_all(select_clicks, deselect_clicks, options):
 def game_type_select_all(select_clicks, deselect_clicks, options):
     ctx = callback_context
     if not ctx.triggered:
-        return []
+        return [opt['value'] for opt in options]  # Select all by default
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
     if button_id == 'game-type-select-all':
         return [opt['value'] for opt in options]
@@ -714,7 +728,7 @@ def game_type_select_all(select_clicks, deselect_clicks, options):
 def map_select_all(select_clicks, deselect_clicks, options):
     ctx = callback_context
     if not ctx.triggered:
-        return []
+        return [opt['value'] for opt in options]  # Select all by default
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
     if button_id == 'map-select-all':
         return [opt['value'] for opt in options]
