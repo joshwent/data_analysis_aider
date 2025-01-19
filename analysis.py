@@ -16,6 +16,9 @@ app = Dash(__name__,
 csv_file = 'data.csv'  # Replace with your CSV file path
 data = pd.read_csv(csv_file)
 
+# Remove unwanted game type
+data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
+
 # Convert UTC timestamps to local time and ensure proper timezone handling
 data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp']).dt.tz_localize('UTC')
 local_tz = datetime.datetime.now().astimezone().tzinfo
