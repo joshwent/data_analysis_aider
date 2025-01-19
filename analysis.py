@@ -18,6 +18,11 @@ data = pd.read_csv(csv_file)
 
 # Remove unwanted game type
 data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
+data = data[data['Game Type'] != 'Training Course']
+data = data[data['Game Type'] != 'Ran-snack']
+data = data[data['Game Type'] != 'Stop and Go']
+data = data[data['Game Type'] != 'Red Light Green Light']
+data = data[data['Game Type'] != 'Prop Hunt']
 
 # Convert UTC timestamps to local time and ensure proper timezone handling
 data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp']).dt.tz_localize('UTC')
