@@ -22,7 +22,9 @@ data = pd.read_csv(csv_file)
 
 # Convert UTC timestamps to local time and ensure proper timezone handling
 data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp'])
-data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(datetime.datetime.now().astimezone().tzinfo)
+data['UTC Timestamp'] = data['UTC Timestamp'].dt.tz_localize('UTC')
+local_tz = datetime.datetime.now().astimezone().tzinfo
+data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
 
 # Remove unwanted game type
 data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
