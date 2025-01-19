@@ -51,9 +51,9 @@ def create_checkbox_group(id_prefix, name, options):
         )
     ], className="filter-group")
 
-operator_group = create_checkbox_group('operator', 'Select Operators', list(data['Operator'].unique()))
-game_type_group = create_checkbox_group('game-type', 'Select Game Types', list(data['Game Type'].unique()))
-map_group = create_checkbox_group('map', 'Select Maps', list(data['Map'].unique()))
+operator_group = create_checkbox_group('operator', 'Select Operators', [])
+game_type_group = create_checkbox_group('game-type', 'Select Game Types', [])
+map_group = create_checkbox_group('map', 'Select Maps', [])
 
 # Create filter accordion using Dash components
 filter_accordion = dbc.Accordion([
@@ -65,11 +65,11 @@ filter_accordion = dbc.Accordion([
 # Create date range picker using Dash component
 date_range = dcc.DatePickerRange(
     id='date-range-picker',
-    min_date_allowed=data['Local Time'].min().replace(tzinfo=None),
-    max_date_allowed=data['Local Time'].max().replace(tzinfo=None),
-    initial_visible_month=data['Local Time'].min().replace(tzinfo=None),
-    start_date=None,  # Will default to min when clicked
-    end_date=None,    # Will default to max when clicked
+    min_date_allowed=None,
+    max_date_allowed=None,
+    initial_visible_month=datetime.datetime.now(),
+    start_date=None,
+    end_date=None,
     style={
         'background-color': 'rgb(30, 30, 30)',
         'padding': '10px',
