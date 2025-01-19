@@ -105,6 +105,7 @@ def get_filtered_data(operators, game_types, maps, date_range):
         filtered = filtered[filtered['Map'].isin(maps)]
     
     # Date range filter with proper timezone handling
+    local_tz = datetime.datetime.now().astimezone().tzinfo
     start_time = pd.Timestamp(date_range[0]).tz_localize(local_tz)
     end_time = pd.Timestamp(date_range[1]).tz_localize(local_tz)
     
