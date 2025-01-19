@@ -21,7 +21,7 @@ data['UTC Timestamp'] = pd.to_datetime(data['UTC Timestamp']).dt.tz_localize('UT
 local_tz = datetime.datetime.now().astimezone().tzinfo
 data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
 
-print(data.columns)
+# print(data.columns)
 
 # Create filter widgets with checkboxes
 def create_checkbox_group(id_prefix, name, options):
@@ -103,13 +103,13 @@ def get_filtered_data(operators, game_types, maps, date_range):
     ]
 
     # Add debug print statements
-    print(f"Filtering stats:")
-    print(f"Total rows before filter: {len(data)}")
-    print(f"Operators filter: {operators}")
-    print(f"Game Types filter: {game_types}")
-    print(f"Maps filter: {maps}")
-    print(f"Date range: {start_time} to {end_time}")
-    print(f"Remaining rows after filter: {len(filtered)}")
+    # print(f"Filtering stats:")
+    # print(f"Total rows before filter: {len(data)}")
+    # print(f"Operators filter: {operators}")
+    # print(f"Game Types filter: {game_types}")
+    # print(f"Maps filter: {maps}")
+    # print(f"Date range: {start_time} to {end_time}")
+    # print(f"Remaining rows after filter: {len(filtered)}")
     
     return filtered
 
@@ -392,16 +392,10 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     date_range = (start_date, end_date)
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
-    # Return message if no data after filtering
-    if filtered_data.empty:
-        return html.Div("Select filters to display statistics", 
-                       style={'text-align': 'center', 
-                             'padding': '20px',
-                             'color': 'var(--text-secondary)'})
-    
     # Calculate stats from filtered data
-    total_kills = data['Lifetime Kills'].sum()
-    total_deaths = data['Lifetime Deaths'].sum()
+    total_kills = data['Lifetime Kills'].max()
+    total_deaths = data['Lifetime Deaths'].max()
+    print(f"total kills: {total_kills}, total deaths: {total_deaths}")
     kd_ratio = round(total_kills / (total_deaths or 1), 2)  # Use 1 if total_deaths is 0
     total_wins = data['Match Outcome'].str.lower().str.contains('win').sum()
     total_games = len(data)
@@ -411,13 +405,8 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     accuracy = round((total_hits / (total_shots or 1)) * 100, 1)  # Use 1 if total_shots is 0
     avg_score = int(round(data['Score'].mean(), 0))
     
-    # Calculate streaks
-    kill_streak = int(filtered_data['Longest Streak'].max())
-    
     # Get total time from lifetime stats
-    total_seconds = int(filtered_data['Lifetime Time Played'].max())
-    total_minutes = total_seconds // 60
-    kills_per_min = round((total_kills / (total_minutes or 1)), 2)
+    total_seconds = int(data['Lifetime Time Played'].max())
     
     # Format total time
     days = total_seconds // (24 * 60 * 60)
@@ -462,10 +451,19 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
         ])
     ], className="stats-card mb-4")
 
+    # Return message if no data after filtering
+    if filtered_data.empty:
+        empty_card = html.Div("Select filters to display statistics", 
+                       style={'text-align': 'center', 
+                             'padding': '20px',
+                             'color': 'var(--text-secondary)'})
+        return html.Div([lifetime_card, empty_card])
+
     # Calculate filtered-specific stats
     filtered_avg_skill = round(filtered_data['Skill'].mean(), 2)
     filtered_kills = filtered_data['Kills'].sum()
     filtered_deaths = filtered_data['Deaths'].sum()
+    print(f"filtered kills: {filtered_kills}, filtered deaths: {filtered_deaths}")
     filtered_kd = round(filtered_kills / (filtered_deaths or 1), 2)
     filtered_wins = filtered_data['Match Outcome'].str.lower().str.contains('win').sum()
     filtered_total = len(filtered_data)
