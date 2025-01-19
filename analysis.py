@@ -1,156 +1,143 @@
+import datetime
 import pandas as pd
-import panel as pn
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime
-from config import *
+from dash import Dash, html, dcc, Input, Output, State, callback, callback_context, no_update, dash
+import pandas as pd
 
-import os
-pn.extension('plotly', css_files=[os.path.join(os.path.dirname(__file__), 'styles.css')])
+# Global variables
+global data
+data = pd.DataFrame()  # Start with empty DataFrame
+import dash_bootstrap_components as dbc
+from plotly.subplots import make_subplots
 
-# Load and process data once
-print(f"Loading data from data.csv...")
-data = pd.read_csv('data.csv')
-data['Local Time'] = pd.to_datetime(data['UTC Timestamp'])
-data['Accuracy'] = (data['Hits'] / data['Shots']).clip(0, 1)
-data['KD_Ratio'] = data['Kills'] / data['Deaths'].replace(0, 1)
-data['Match_Won'] = data['Match Outcome'].str.lower() == 'win'
+# Initialize the Dash app
+app = Dash(__name__, 
+          external_stylesheets=[dbc.themes.DARKLY],
+          meta_tags=[{'name': 'viewport',
+                     'content': 'width=device-width, initial-scale=1.0'}])
+
+from html_parser import parse_html_file
+import base64
+import io
+
+
+# print(data.columns)
 
 # Create filter widgets with checkboxes
-def create_checkbox_group(name, options, width=220):
-    select_all = pn.widgets.Checkbox(name='Select All', value=False, width=width)
-    checkbox_group = pn.widgets.CheckBoxGroup(
-        name=name,
-        options=sorted(options),
-        value=[],
-        inline=False,
-        width=width,
-        styles={
-            'background': 'var(--bg-card)',
-            'padding': '12px',
-            'border-radius': '8px',
-            'margin-bottom': '8px'
-        }
-    )
-    
-    def update_checkboxes(event):
-        if event.new:
-            checkbox_group.value = checkbox_group.options
-        else:
-            checkbox_group.value = []
-    
-    select_all.param.watch(update_checkboxes, 'value')
-    
-    return pn.Column(select_all, checkbox_group)
+def create_checkbox_group(id_prefix, name, options):
+    return html.Div([
+        html.Div([
+            dbc.Button(
+                "Select All",
+                id=f"{id_prefix}-select-all",
+                color="primary",
+                size="sm",
+                className="me-2 mb-2"
+            ),
+            dbc.Button(
+                "Deselect All",
+                id=f"{id_prefix}-deselect-all", 
+                color="secondary",
+                size="sm",
+                className="mb-2"
+            ),
+        ]),
+        dbc.Checklist(
+            id=f"{id_prefix}-checklist",
+            options=[{"label": opt, "value": opt} for opt in sorted(options)],
+            value=[],
+            className="filter-checklist"
+        )
+    ], className="filter-group")
 
-operator_group = create_checkbox_group('Select Operators', list(data['Operator'].unique()))
-operator_select = operator_group[1]
+operator_group = create_checkbox_group('operator', 'Select Operators', [])
+game_type_group = create_checkbox_group('game-type', 'Select Game Types', [])
+map_group = create_checkbox_group('map', 'Select Maps', [])
 
-game_type_group = create_checkbox_group('Select Game Types', list(data['Game Type'].unique()))
-game_type_select = game_type_group[1]
+# Create filter accordion using Dash components
+filter_accordion = dbc.Accordion([
+    dbc.AccordionItem(operator_group, title="Operators", item_id="operators"),
+    dbc.AccordionItem(game_type_group, title="Game Types", item_id="game-types"),
+    dbc.AccordionItem(map_group, title="Maps", item_id="maps")
+], active_item="operators", style={"width": "250px"})
 
-map_group = create_checkbox_group('Select Maps', list(data['Map'].unique()))
-map_select = map_group[1]
-
-# Create filter accordion
-filter_accordion = pn.Accordion(
-    ('Operators', operator_group),
-    ('Game Types', game_type_group),
-    ('Maps', map_group),
-    width=250,
-    min_height=400,
-    active=[0],  # Open first panel by default
-    sizing_mode='stretch_height'
-)
-
-
-# Calculate default date range
-default_start = data['Local Time'].min().replace(tzinfo=None)
-default_end = data['Local Time'].max().replace(tzinfo=None)
-
-date_range = pn.widgets.DatetimeRangePicker(
-    name='Date Range',
-    start=default_start,
-    end=default_end,
-    value=(default_start, default_end),
-    width=250,
-    styles={
-        'background': 'rgb(30, 30, 30)',
-        'padding': '12px',
-        'border-radius': '8px',
+# Create date range picker using Dash component
+date_range = dcc.DatePickerRange(
+    id='date-range-picker',
+    min_date_allowed=None,
+    max_date_allowed=None,
+    initial_visible_month=datetime.datetime.now(),
+    start_date=None,
+    end_date=None,
+    style={
+        'background-color': 'rgb(30, 30, 30)',
+        'padding': '10px',
+        'border-radius': '4px',
         'margin-top': '20px',
-        'width': '100%'
     }
 )
 
+# Set default plot dimensions
+PLOT_HEIGHT = 300
+PLOT_WIDTH = 490
+    
 # Create plots using hvPlot
 def get_filtered_data(operators, game_types, maps, date_range):
-    """
-    Filter data based on selected criteria. Results are cached to prevent redundant filtering.
-    """
-    try:
-        # Convert lists to tuples for hashing
-        operators = tuple(operators) if operators else ()
-        game_types = tuple(game_types) if game_types else ()
-        maps = tuple(maps) if maps else ()
-        date_range = tuple(date_range) if date_range else ()
+    # Return empty DataFrame if any filter category is empty
+    if not operators or not game_types or not maps:
+        return pd.DataFrame(columns=data.columns)
         
-        filtered = data.loc[:]  # Use .loc for efficient view
-        
-        # Apply filters efficiently
-        if any([operators, game_types, maps]):
-            mask = pd.Series(True, index=filtered.index)
-            if operators:
-                mask &= filtered['Operator'].isin(operators)
-            if game_types:
-                mask &= filtered['Game Type'].isin(game_types)
-            if maps:
-                mask &= filtered['Map'].isin(maps)
-            filtered = filtered[mask]
-        
-        # Date range filter
-        if date_range:
-            start_time = pd.Timestamp(date_range[0])
-            end_time = pd.Timestamp(date_range[1])
-            filtered = filtered[
-                (filtered['Local Time'] >= start_time) &
-                (filtered['Local Time'] <= end_time)
-            ]
-
-        print(f"Filtered data: {len(filtered)}/{len(data)} rows")
-        
-        return filtered
-    except Exception as e:
-        print(f"Error filtering data: {e}")
-        return pd.DataFrame()  # Return empty DataFrame on error
-
-# Store plot references
-_plot_refs = {}
-
-def clear_plot_refs():
-    """Clear stored plot references"""
-    global _plot_refs
-    _plot_refs.clear()
-
-@pn.depends(operator_select.param.value, game_type_select.param.value, 
-            map_select.param.value, date_range.param.value, watch=False)
-def create_plots(operator, game_type, map_name, date_range):
-    # Convert lists to tuples for hashing
-    operator = tuple(operator) if isinstance(operator, list) else operator
-    game_type = tuple(game_type) if isinstance(game_type, list) else game_type
-    map_name = tuple(map_name) if isinstance(map_name, list) else map_name
-    date_range = tuple(date_range) if isinstance(date_range, list) else date_range
+    filtered = data.copy()
     
+    # Basic filters with checkbox lists
+    if operators:
+        filtered = filtered[filtered['Operator'].isin(operators)]
+    if game_types:
+        filtered = filtered[filtered['Game Type'].isin(game_types)]
+    if maps:
+        filtered = filtered[filtered['Map'].isin(maps)]
+    
+    # Date range filter with proper timezone handling
+    local_tz = datetime.datetime.now().astimezone().tzinfo
+    start_time = pd.Timestamp(date_range[0]).tz_localize(local_tz)
+    end_time = pd.Timestamp(date_range[1]).tz_localize(local_tz)
+    
+    # Ensure timestamps are in the correct timezone before comparison
+    filtered = filtered[
+        (filtered['Local Time'] >= start_time) &
+        (filtered['Local Time'] <= end_time)
+    ]
+
+    # Add debug print statements
+    # print(f"Filtering stats:")
+    # print(f"Total rows before filter: {len(data)}")
+    # print(f"Operators filter: {operators}")
+    # print(f"Game Types filter: {game_types}")
+    # print(f"Maps filter: {maps}")
+    # print(f"Date range: {start_time} to {end_time}")
+    # print(f"Remaining rows after filter: {len(filtered)}")
+    
+    return filtered
+
+@callback(
+    Output('plots-container', 'children'),
+    [Input('operator-checklist', 'value'),
+     Input('game-type-checklist', 'value'),
+     Input('map-checklist', 'value'),
+     Input('date-range-picker', 'start_date'),
+     Input('date-range-picker', 'end_date')]
+)
+def create_plots(operator, game_type, map_name, start_date, end_date):
+    date_range = (start_date, end_date)
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
-    # Always clear references before creating new plots
-    clear_plot_refs()
-    
+    # Return message if no data after filtering
     if filtered_data.empty:
-        return pn.Column(
-            pn.pane.Markdown("No data matches the selected filters."),
-            styles={'color': 'var(--text-secondary)', 'text-align': 'center', 'padding': '2rem'}
-        )
+        return html.Div("Select filters to display charts", 
+                       style={'text-align': 'center', 
+                             'padding': '20px',
+                             'color': 'var(--text-secondary)'})
     
     # Calculate metrics with proper handling of edge cases
     filtered_data['Accuracy'] = (filtered_data['Hits'] / filtered_data['Shots']).round(3)
@@ -170,12 +157,9 @@ def create_plots(operator, game_type, map_name, date_range):
         x='Local Time',
         y='Skill',
         title="Skill Progression Over Time",
-        height=350,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color_discrete_sequence=['#5B9AFF']
-    )
-    skill_plot.update_layout(
-        autosize=True,
-        margin=dict(l=50, r=50, t=50, b=50)
     )
     skill_plot.update_traces(line_width=2)
     skill_plot.update_layout(
@@ -194,8 +178,8 @@ def create_plots(operator, game_type, map_name, date_range):
         x='Hour_12',
         y='KD_Ratio',
         title="Average K/D Ratio by Hour",
-        height=300,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color_discrete_sequence=['#00ff00']
     )
     kd_by_hour.update_layout(
@@ -216,8 +200,8 @@ def create_plots(operator, game_type, map_name, date_range):
         x='Accuracy',
         nbins=30,
         title="Accuracy Distribution",
-        height=300,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color_discrete_sequence=['orange']
     )
     accuracy_hist.update_layout(
@@ -232,8 +216,8 @@ def create_plots(operator, game_type, map_name, date_range):
         x='KD_Ratio',
         nbins=30,
         title="K/D Ratio Distribution",
-        height=300,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color_discrete_sequence=['red']
     )
     kd_hist.update_layout(
@@ -248,8 +232,8 @@ def create_plots(operator, game_type, map_name, date_range):
         x='Skill',
         nbins=30,
         title="Skill Distribution",
-        height=300,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color_discrete_sequence=['cyan']
     )
     skill_hist.update_layout(
@@ -264,8 +248,8 @@ def create_plots(operator, game_type, map_name, date_range):
         x='Local Time',
         y=['KD_Ratio', 'Accuracy'],
         title="Performance Metrics Over Time",
-        height=300,
-        width=600
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH
     )
     metrics_plot.update_traces(line_width=2)
     metrics_plot.update_layout(template="plotly_dark")
@@ -277,8 +261,8 @@ def create_plots(operator, game_type, map_name, date_range):
         x='Local Time',
         y='Headshot_Ratio',
         title="Headshot Ratio Over Time",
-        height=300,
-        width=600
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH
     )
     headshot_plot.update_traces(line_color='#ff4d4d', line_width=2)
     headshot_plot.update_layout(
@@ -292,8 +276,8 @@ def create_plots(operator, game_type, map_name, date_range):
         x='Damage Taken',
         y='Damage Done',
         title="Damage Efficiency",
-        height=300,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color='Match Outcome',
         trendline="ols"
     )
@@ -308,8 +292,8 @@ def create_plots(operator, game_type, map_name, date_range):
         values=outcome_stats.values,
         names=outcome_stats.index,
         title="Match Outcomes Distribution",
-        height=300,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color_discrete_sequence=px.colors.qualitative.Set3
     )
     outcome_plot.update_layout(template="plotly_dark")
@@ -319,7 +303,7 @@ def create_plots(operator, game_type, map_name, date_range):
                 .agg({'Kills': 'sum', 'Deaths': 'sum'})
                 .reset_index())
     
-    # Calculate KD ratio safely
+    # Calculate KD ratio safely, replacing 0 deaths with 1
     map_stats['KD'] = (map_stats['Kills'] / map_stats['Deaths'].replace(0, 1)).round(2)
     
     # Sort by KD ratio
@@ -330,8 +314,8 @@ def create_plots(operator, game_type, map_name, date_range):
         x='Map',
         y='KD',
         title="K/D Ratio by Map",
-        height=400,
-        width=600,
+        height=PLOT_HEIGHT,
+        width=PLOT_WIDTH,
         color_discrete_sequence=['purple']
     )
     map_performance.update_layout(
@@ -341,17 +325,19 @@ def create_plots(operator, game_type, map_name, date_range):
         xaxis_tickangle=45
     )
     
-    # Convert Plotly figures to Panel panes with stored references
-    _plot_refs['skill'] = pn.pane.Plotly(skill_plot)
-    _plot_refs['kd_hour'] = pn.pane.Plotly(kd_by_hour)
-    _plot_refs['accuracy'] = pn.pane.Plotly(accuracy_hist)
-    _plot_refs['kd_hist'] = pn.pane.Plotly(kd_hist)
-    _plot_refs['skill_hist'] = pn.pane.Plotly(skill_hist)
-    _plot_refs['metrics'] = pn.pane.Plotly(metrics_plot)
-    _plot_refs['map_perf'] = pn.pane.Plotly(map_performance)
-    _plot_refs['headshot'] = pn.pane.Plotly(headshot_plot)
-    _plot_refs['damage'] = pn.pane.Plotly(damage_plot)
-    _plot_refs['outcome'] = pn.pane.Plotly(outcome_plot)
+    # Create Dash graph components
+    plots = [
+        dcc.Graph(figure=skill_plot, id='skill-plot'),
+        dcc.Graph(figure=kd_by_hour, id='kd-by-hour-plot'),
+        dcc.Graph(figure=accuracy_hist, id='accuracy-hist'),
+        dcc.Graph(figure=kd_hist, id='kd-hist'),
+        dcc.Graph(figure=skill_hist, id='skill-hist'),
+        dcc.Graph(figure=metrics_plot, id='metrics-plot'),
+        dcc.Graph(figure=map_performance, id='map-performance'),
+        dcc.Graph(figure=headshot_plot, id='headshot-plot'),
+        dcc.Graph(figure=damage_plot, id='damage-plot'),
+        dcc.Graph(figure=outcome_plot, id='outcome-plot')
+    ]
     
     # Create activity heatmap
     activity_df = filtered_data.groupby(['Day', 'Hour']).size().reset_index(name='Count')
@@ -382,152 +368,454 @@ def create_plots(operator, game_type, map_name, date_range):
         xaxis_tickangle=45
     )
     
-    _plot_refs['heatmap'] = pn.pane.Plotly(activity_heatmap)
+    # Add activity heatmap to plots list
+    plots.append(dcc.Graph(figure=activity_heatmap, id='activity-heatmap'))
     
-    # Create a responsive grid layout for plots with fixed column widths
-    layout = pn.GridBox(
-        _plot_refs['skill'],
-        _plot_refs['kd_hour'],
-        _plot_refs['accuracy'],
-        _plot_refs['kd_hist'],
-        _plot_refs['skill_hist'],
-        _plot_refs['metrics'],
-        _plot_refs['headshot'],
-        _plot_refs['damage'],
-        _plot_refs['outcome'],
-        _plot_refs['map_perf'],
-        _plot_refs['heatmap'],
-        ncols=2,
-        sizing_mode='stretch_width',
-        styles={
-            'grid-gap': '1rem',
+    # Create responsive grid layout using Dash
+    layout = html.Div(
+        plots,
+        style={
+            'display': 'grid',
+            'grid-template-columns': 'repeat(2, 1fr)',
+            'gap': '1rem',
             'padding': '1rem',
             'background': 'var(--bg-dark)',
-            'margin': '0 auto'  # Center the grid
+            'margin': '0 auto',
+            'max-width': '1150px'
         }
     )
     return layout
 
 # Create stats cards
-@pn.depends(operator_select.param.value, game_type_select.param.value,
-            map_select.param.value, date_range.param.value, watch=False)
-def create_stats(operator, game_type, map_name, date_range):
-    # Convert lists to tuples for hashing
-    operator = tuple(operator) if isinstance(operator, list) else operator
-    game_type = tuple(game_type) if isinstance(game_type, list) else game_type
-    map_name = tuple(map_name) if isinstance(map_name, list) else map_name
-    date_range = tuple(date_range) if isinstance(date_range, list) else date_range
-    
+@callback(
+    Output('stats-container', 'children'),
+    [Input('operator-checklist', 'value'),
+     Input('game-type-checklist', 'value'),
+     Input('map-checklist', 'value'),
+     Input('date-range-picker', 'start_date'),
+     Input('date-range-picker', 'end_date')]
+)
+def create_stats(operator, game_type, map_name, start_date, end_date):
+    date_range = (start_date, end_date)
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
-    # Use pre-calculated metrics for better performance
+    # Return empty stats if no data is loaded
+    if data.empty:
+        return html.Div([
+            dbc.Card([
+                dbc.CardBody([
+                    html.H3("No Data Loaded", 
+                           className="text-center mb-4",
+                           style={'color': 'var(--accent-color)', 'fontSize': '1.4rem'}),
+                    html.Div("Please load data using the upload button or example data button above.",
+                            className="text-center",
+                            style={'color': 'var(--text-secondary)'})
+                ])
+            ], className="stats-card mb-4")
+        ])
+
+    # Calculate stats from filtered data
+    total_kills = filtered_data['Kills'].sum() if not filtered_data.empty else 0
+    total_deaths = filtered_data['Deaths'].sum() if not filtered_data.empty else 0
+    kd_ratio = round(total_kills / (total_deaths or 1), 2)  # Use 1 if total_deaths is 0
+    total_wins = filtered_data['Match Outcome'].str.lower().str.contains('win').sum() if not filtered_data.empty else 0
+    total_games = len(filtered_data)
+    win_rate = round((total_wins / (total_games or 1)) * 100, 1)  # Use 1 if total_games is 0
+    total_shots = filtered_data['Shots'].sum() if not filtered_data.empty else 0
+    total_hits = filtered_data['Hits'].sum() if not filtered_data.empty else 0
+    accuracy = round((total_hits / (total_shots or 1)) * 100, 1)  # Use 1 if total_shots is 0
+    avg_score = int(round(filtered_data['Score'].mean(), 0)) if not filtered_data.empty else 0
+    
+    # Calculate total time played from match timestamps
+    if not filtered_data.empty:
+        match_durations = (filtered_data['Match End Timestamp'] - filtered_data['Match Start Timestamp'])
+        total_seconds = int(match_durations.dt.total_seconds().sum())
+    else:
+        total_seconds = 0
+    
+    # Format total time
+    days = total_seconds // (24 * 60 * 60)
+    remaining_seconds = total_seconds % (24 * 60 * 60)
+    hours = remaining_seconds // (60 * 60)
+    minutes = (remaining_seconds % (60 * 60)) // 60
+    total_time = f"{days}d {hours}h {minutes}m"
+    
+    # Create two cards: one for lifetime stats and one for filtered stats
+    lifetime_card = dbc.Card([
+        dbc.CardBody([
+            html.H3("Lifetime Statistics", 
+                    className="text-center mb-4",
+                    style={'color': 'var(--accent-color)', 'fontSize': '1.4rem'}),
+            
+            dbc.Row([
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Total K/D"),
+                        html.Div(f"{kd_ratio}")
+                    ], className="text-center mb-3")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Overall Win Rate"),
+                        html.Div(f"{win_rate}%")
+                    ], className="text-center mb-3")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Lifetime Accuracy"),
+                        html.Div(f"{accuracy}%")
+                    ], className="text-center mb-3")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Total Play Time"),
+                        html.Div(f"{total_time}")
+                    ], className="text-center mb-3")
+                ]),
+            ])
+        ])
+    ], className="stats-card mb-4")
+
+    # Return message if no data after filtering
     if filtered_data.empty:
-        return pn.Row(
-            pn.pane.Markdown("No data matches the selected filters.", styles={
-                'color': 'var(--text-secondary)',
-                'text-align': 'center',
-                'padding': '2rem',
-                'width': '100%'
-            })
-        )
+        empty_card = html.Div("Select filters to display statistics", 
+                       style={'text-align': 'center', 
+                             'padding': '20px',
+                             'color': 'var(--text-secondary)'})
+        return html.Div([lifetime_card, empty_card])
 
-    # Calculate all stats at once using vectorized operations
-    stats_dict = {
-        'avg_skill': filtered_data['Skill'].mean(),
-        'kd_ratio': filtered_data['KD_Ratio'].mean(),
-        'win_rate': 100 * filtered_data['Match_Won'].mean(),
-        'accuracy': 100 * filtered_data['Accuracy'].mean(),
-        'kill_streak': filtered_data['Longest Streak'].max(),
-        'kills_per_min': (filtered_data['Kills'].sum() / filtered_data['Lifetime Time Played'].sum() * 60),
-        'total_time': filtered_data['Lifetime Time Played'].sum()
-    }
+    # Calculate filtered-specific stats
+    filtered_avg_skill = round(filtered_data['Skill'].mean(), 2)
+    filtered_kills = filtered_data['Kills'].sum()
+    filtered_deaths = filtered_data['Deaths'].sum()
+    filtered_kd = round(filtered_kills / (filtered_deaths or 1), 2)
+    filtered_wins = filtered_data['Match Outcome'].str.lower().str.contains('win').sum()
+    filtered_total = len(filtered_data)
+    filtered_winrate = round((filtered_wins / (filtered_total or 1)) * 100, 1)  # Use 1 if filtered_total is 0
+    filtered_accuracy = round((filtered_data['Hits'].sum() / filtered_data['Shots'].sum()) * 100, 1)
+    filtered_streak = int(filtered_data['Longest Streak'].max())
     
-    # Round all values
-    stats_dict = {k: round(float(v or 0), 2) for k, v in stats_dict.items()}
+    filtered_card = dbc.Card([
+        dbc.CardBody([
+            html.H3("Filtered Performance", 
+                    className="text-center mb-4",
+                    style={'color': 'var(--accent-color)', 'fontSize': '1.4rem'}),
+            
+            dbc.Row([
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Avg Skill Rating"),
+                        html.Div(f"{filtered_avg_skill}")
+                    ], className="text-center mb-3")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Filtered K/D"),
+                        html.Div(f"{filtered_kd}")
+                    ], className="text-center mb-3")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Win Rate"),
+                        html.Div(f"{filtered_winrate}%")
+                    ], className="text-center mb-3")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Accuracy"),
+                        html.Div(f"{filtered_accuracy}%")
+                    ], className="text-center mb-3")
+                ]),
+            ]),
+            
+            dbc.Row([
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Best Streak"),
+                        html.Div(f"{filtered_streak}")
+                    ], className="text-center")
+                ]),
+                dbc.Col([
+                    html.Div([
+                        html.Strong("Matches"),
+                        html.Div(f"{filtered_total}")
+                    ], className="text-center")
+                ]),
+            ])
+        ])
+    ], className="stats-card", style={
+        'background': 'rgb(30, 30, 30)',
+        'color': 'white',
+        'border': '1px solid #444',
+        'borderRadius': '8px',
+        'boxShadow': '0 2px 4px rgba(0,0,0,0.2)'
+    })
     
-    # Create performance summary row with the calculated stats
-    stats = [
-        ("SKILL", stats_dict['avg_skill'], "var(--primary-color)"),
-        ("K/D", stats_dict['kd_ratio'], "var(--accent-color)"),
-        ("WIN", f"{stats_dict['win_rate']}%", "var(--success-color)"),
-        ("ACC", f"{stats_dict['accuracy']}%", "var(--warning-color)"),
-        ("STREAK", stats_dict['kill_streak'], "var(--danger-color)"),
-        ("K/MIN", stats_dict['kills_per_min'], "var(--primary-color)"),
-        ("TIME", f"{stats_dict['total_time']}m", "var(--accent-color)")
-    ]
-    
-    stat_elements = []
-    for label, value, color in stats:
-        stat_elements.append(
-            pn.pane.Markdown(
-                f"<div class='stat-label'>{label}</div><div class='stat-value' style='color: {color}'>{value}</div>",
-                styles={
-                    'display': 'inline-block',
-                    'padding': '0 24px',
-                    'text-align': 'center',
-                    'border-right': '1px solid var(--border-color)',
-                }
+    # Return both cards in a container
+    return html.Div([
+        lifetime_card,
+        filtered_card
+    ])
+
+
+# Define the app layout
+app.layout = dbc.Container([
+    dbc.Row([
+        # File upload
+        dbc.Col([
+            html.H2("Data Import",
+                   style={'color': 'var(--text-primary)', 
+                         'marginBottom': '1rem'}),
+            dbc.Button(
+                "Load Example Data",
+                id='load-example-data',
+                color="secondary",
+                className="mb-3",
+                style={'width': '100%'}
+            ),
+            html.Div("- or -", 
+                    className="text-center mb-3",
+                    style={'color': 'var(--text-secondary)'}),
+            dcc.Upload(
+                id='upload-data',
+                children=html.Div([
+                    'Drag and Drop or ',
+                    dbc.Button('Select HTML File', color="primary", size="sm", className="ms-2")
+                ]),
+                style={
+                    'width': '100%',
+                    'height': '60px',
+                    'lineHeight': '60px',
+                    'borderWidth': '1px',
+                    'borderStyle': 'dashed',
+                    'borderRadius': '5px',
+                    'textAlign': 'center',
+                    'margin': '10px 0'
+                },
+                multiple=False
+            ),
+            dcc.Loading(
+                id="loading-upload",
+                type="circle",
+                children=[
+                    html.Div(id='upload-status', style={'marginBottom': '10px'})
+                ]
             )
-        )
-    
-    summary_row = pn.Row(
-        *stat_elements,
-        styles={
+        ], width=12, style={
             'background': 'var(--bg-card)',
-            'border': '1px solid var(--border-color)',
-            'border-radius': '12px',
-            'padding': '16px',
-            'margin': '8px 0',
-            'box-shadow': '0 2px 4px rgba(0,0,0,0.1)',
-            'align-items': 'center',
-            'justify-content': 'center'
-        },
-        sizing_mode='stretch_width'
-    )
+            'padding': '20px',
+            'borderRadius': '8px',
+            'marginBottom': '20px'
+        }),
+    ]),
+    dbc.Row([
+        # Sidebar
+        dbc.Col([
+            html.H2("Filters", 
+                   style={'color': 'var(--text-primary)', 
+                         'marginBottom': '1rem'}),
+            filter_accordion,
+            date_range
+        ], width=3, style={
+            'background': 'var(--bg-card)',
+            'padding': '20px',
+            'borderRadius': '8px'
+        }),
+        
+        # Main content
+        dbc.Col([
+            html.Div(id='stats-container'),
+            html.Hr(style={'margin': '20px 0'}),
+            html.Div(id='plots-container')
+        ], width=9, style={
+            'background': 'var(--bg-dark)',
+            'padding': '20px'
+        })
+    ])
+], fluid=True, style={'maxWidth': '1400px'})
+
+# Callbacks for select/deselect all buttons
+@callback(
+    Output('operator-checklist', 'value'),
+    [Input('operator-select-all', 'n_clicks'),
+     Input('operator-deselect-all', 'n_clicks')],
+    [State('operator-checklist', 'options')]
+)
+def operator_select_all(select_clicks, deselect_clicks, options):
+    ctx = callback_context
+    if not ctx.triggered:
+        return [opt['value'] for opt in options]  # Select all by default
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    if button_id == 'operator-select-all':
+        return [opt['value'] for opt in options]
+    elif button_id == 'operator-deselect-all':
+        return []
+    return []
+
+@callback(
+    Output('game-type-checklist', 'value'),
+    [Input('game-type-select-all', 'n_clicks'),
+     Input('game-type-deselect-all', 'n_clicks')],
+    [State('game-type-checklist', 'options')]
+)
+def game_type_select_all(select_clicks, deselect_clicks, options):
+    ctx = callback_context
+    if not ctx.triggered:
+        return [opt['value'] for opt in options]  # Select all by default
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    if button_id == 'game-type-select-all':
+        return [opt['value'] for opt in options]
+    elif button_id == 'game-type-deselect-all':
+        return []
+    return []
+
+@callback(
+    Output('map-checklist', 'value'),
+    [Input('map-select-all', 'n_clicks'),
+     Input('map-deselect-all', 'n_clicks')],
+    [State('map-checklist', 'options')]
+)
+def map_select_all(select_clicks, deselect_clicks, options):
+    ctx = callback_context
+    if not ctx.triggered:
+        return [opt['value'] for opt in options]  # Select all by default
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    if button_id == 'map-select-all':
+        return [opt['value'] for opt in options]
+    elif button_id == 'map-deselect-all':
+        return []
+    return []
+
+
+# Combined callback for file upload, example data, and date picker
+@callback(
+    [Output('upload-status', 'children'),
+     Output('operator-checklist', 'options'),
+     Output('game-type-checklist', 'options'),
+     Output('map-checklist', 'options'),
+     Output('date-range-picker', 'min_date_allowed'),
+     Output('date-range-picker', 'max_date_allowed'),
+     Output('date-range-picker', 'start_date', allow_duplicate=True),
+     Output('date-range-picker', 'end_date', allow_duplicate=True),
+     Output('operator-checklist', 'value', allow_duplicate=True),
+     Output('game-type-checklist', 'value', allow_duplicate=True),
+     Output('map-checklist', 'value', allow_duplicate=True),
+     Output('upload-data', 'contents')],
+    [Input('upload-data', 'contents'),
+     Input('load-example-data', 'n_clicks'),
+     Input('date-range-picker', 'start_date'),
+     Input('date-range-picker', 'end_date')],
+    [State('upload-data', 'filename')],
+    prevent_initial_call=True
+)
+def update_data(contents, example_clicks, start_date, end_date, filename):
+    global data
+    ctx = callback_context
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
     
-    return summary_row
+    # Handle date picker updates
+    if triggered_id in ['date-range-picker']:
+        if start_date is None:
+            start_date = data['Local Time'].min().replace(tzinfo=None)
+        if end_date is None:
+            end_date = data['Local Time'].max().replace(tzinfo=None)
+        return no_update, no_update, no_update, no_update, no_update, no_update, start_date, end_date, no_update, no_update, no_update, None
 
-# Initialize Panel with minimal CSS
-pn.extension('plotly')
-pn.config.raw_css.append(open('styles.css').read())
+    # Reset data before processing new data
+    data = pd.DataFrame()
 
-# Layout the dashboard
-# Initialize dashboard with configuration
-dashboard = pn.template.FastListTemplate(
-    title=DASHBOARD_TITLE,
-    sidebar_width=300,  # Set fixed width
-    theme=THEME
-)
+    # Handle example data loading
+    if triggered_id == 'load-example-data' and example_clicks is not None:
+        try:
+            data = pd.read_csv('data2.csv')
+            success_message = 'Example data loaded successfully'
+        except Exception as e:
+            return (
+                html.Div([
+                    html.I(className="fas fa-exclamation-circle", style={'color': 'red', 'marginRight': '10px'}),
+                    'Error loading example data: ',
+                    html.Pre(str(e))
+                ]),
+                [], [], [], None, None, None, None, [], [], [], None
+            )
+    
+    # Handle file upload
+    elif triggered_id == 'upload-data':
+        if contents is None:
+            return html.Div(), [], [], [], None, None, None, None, [], [], []
+            
+        try:
+            content_type, content_string = contents.split(',')
+            decoded = base64.b64decode(content_string)
+            
+            if 'html' in filename.lower():
+                data = parse_html_file(decoded.decode('utf-8'))
+                success_message = f'Successfully loaded {filename}'
+            else:
+                raise ValueError("Please upload an HTML file")
+        except Exception as e:
+            return (
+                html.Div([
+                    html.I(className="fas fa-exclamation-circle", style={'color': 'red', 'marginRight': '10px'}),
+                    'Error processing file: ',
+                    html.Pre(str(e))
+                ]),
+                [], [], [], None, None, None, None, [], [], [], None
+            )
+    else:
+        return html.Div(), [], [], [], None, None, None, None, [], [], [], None
 
-# Pre-calculate all common metrics once at load time
-data['Hour'] = data['Local Time'].dt.hour
-data['Day'] = data['Local Time'].dt.day_name()
-data['Accuracy'] = (data['Hits'] / data['Shots'].replace(0, 1)).clip(0, 1)
-data['KD_Ratio'] = data['Kills'] / data['Deaths'].replace(0, 1)
-data['Headshot_Ratio'] = (data['Headshots'] / data['Kills']).fillna(0)
-data['Match_Won'] = data['Match Outcome'].str.lower() == 'win'
-data['Lifetime_Minutes'] = data['Lifetime Time Played']
+    # Apply common data processing
+    # Filter out unwanted game types
+    data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
+    data = data[data['Game Type'] != 'Training Course']
+    data = data[data['Game Type'] != 'Ran-snack']
+    data = data[data['Game Type'] != 'Stop and Go']
+    data = data[data['Game Type'] != 'Red Light Green Light']
+    data = data[data['Game Type'] != 'Prop Hunt']
+    
+    # Convert timestamps and timezone
+    timestamp_columns = ['UTC Timestamp', 'Match Start Timestamp', 'Match End Timestamp']
+    for col in timestamp_columns:
+        if col in data.columns:
+            data[col] = pd.to_datetime(data[col])
+            data[col] = data[col].dt.tz_localize('UTC')
+    
+    local_tz = datetime.datetime.now().astimezone().tzinfo
+    data['Local Time'] = data['UTC Timestamp'].dt.tz_convert(local_tz)
+    
+    # Update filter options
+    operator_options = [{"label": opt, "value": opt} for opt in sorted(data['Operator'].unique())]
+    game_type_options = [{"label": opt, "value": opt} for opt in sorted(data['Game Type'].unique())]
+    map_options = [{"label": opt, "value": opt} for opt in sorted(data['Map'].unique())]
+    
+    # Update date range
+    min_date = data['Local Time'].min().replace(tzinfo=None)
+    max_date = data['Local Time'].max().replace(tzinfo=None)
+    
+    # Get all values for initial selection
+    operator_values = sorted(data['Operator'].unique())
+    game_type_values = sorted(data['Game Type'].unique())
+    map_values = sorted(data['Map'].unique())
 
-# Add components to the sidebar
-# Create a sidebar container with proper sizing
-sidebar_content = pn.Column(
-    pn.pane.Markdown("## Filters", styles={'color': 'var(--text-primary)', 'margin-bottom': '1rem'}),
-    date_range,
-    filter_accordion,
-    styles={'background': 'var(--bg-card)', 'border-radius': '8px', 'padding': '1rem'},
-    margin=(0, 10),
-    width=300,
-    sizing_mode='stretch_height'
-)
+    return (
+        html.Div([
+            html.I(className="fas fa-check-circle", style={'color': 'green', 'marginRight': '10px'}),
+            success_message
+        ]),
+        operator_options,
+        game_type_options,
+        map_options,
+        min_date,
+        max_date,
+        min_date,
+        max_date,
+        operator_values,
+        game_type_values,
+        map_values,
+        None
+    )
 
-# Add components to template
-dashboard.sidebar.append(sidebar_content)
-dashboard.main.append(pn.Column(
-    create_stats,
-    pn.layout.Divider(margin=(20, 0)),
-    create_plots,
-    sizing_mode='stretch_width'
-))
-
+# Run the app
 if __name__ == '__main__':
-    dashboard.show()
+    app.run_server(debug=True)
