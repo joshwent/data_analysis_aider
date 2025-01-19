@@ -2,9 +2,15 @@ import datetime
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from dash import Dash, html, dcc, Input, Output, callback
+from dash import Dash, html, dcc, Input, Output, State, callback
 import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
+
+# Initialize the Dash app
+app = Dash(__name__, 
+          external_stylesheets=[dbc.themes.DARKLY],
+          meta_tags=[{'name': 'viewport',
+                     'content': 'width=device-width, initial-scale=1.0'}])
 
 # Load the CSV data
 csv_file = 'data.csv'  # Replace with your CSV file path
