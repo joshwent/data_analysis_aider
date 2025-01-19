@@ -423,8 +423,12 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     accuracy = round((total_hits / (total_shots or 1)) * 100, 1)  # Use 1 if total_shots is 0
     avg_score = int(round(filtered_data['Score'].mean(), 0)) if not filtered_data.empty else 0
     
-    # Get total time played
-    total_seconds = filtered_data['Match Duration'].sum() if not filtered_data.empty else 0
+    # Calculate total time played from match timestamps
+    if not filtered_data.empty:
+        match_durations = (filtered_data['Match End Timestamp'] - filtered_data['Match Start Timestamp'])
+        total_seconds = int(match_durations.dt.total_seconds().sum())
+    else:
+        total_seconds = 0
     
     # Format total time
     days = total_seconds // (24 * 60 * 60)
