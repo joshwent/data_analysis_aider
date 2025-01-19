@@ -413,7 +413,6 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     # Calculate stats from filtered data
     total_kills = filtered_data['Kills'].sum() if not filtered_data.empty else 0
     total_deaths = filtered_data['Deaths'].sum() if not filtered_data.empty else 0
-    print(f"total kills: {total_kills}, total deaths: {total_deaths}")
     kd_ratio = round(total_kills / (total_deaths or 1), 2)  # Use 1 if total_deaths is 0
     total_wins = filtered_data['Match Outcome'].str.lower().str.contains('win').sum() if not filtered_data.empty else 0
     total_games = len(filtered_data)
@@ -485,7 +484,6 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     filtered_avg_skill = round(filtered_data['Skill'].mean(), 2)
     filtered_kills = filtered_data['Kills'].sum()
     filtered_deaths = filtered_data['Deaths'].sum()
-    print(f"filtered kills: {filtered_kills}, filtered deaths: {filtered_deaths}")
     filtered_kd = round(filtered_kills / (filtered_deaths or 1), 2)
     filtered_wins = filtered_data['Match Outcome'].str.lower().str.contains('win').sum()
     filtered_total = len(filtered_data)
