@@ -382,7 +382,7 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
     # Calculate basic stats
-    avg_skill = filtered_data['Skill'].mean().round(2)
+    avg_skill = round(filtered_data['Skill'].mean(), 2)
     total_kills = filtered_data['Kills'].sum()
     total_deaths = filtered_data['Deaths'].sum()
     kd_ratio = (total_kills / total_deaths).round(2)
