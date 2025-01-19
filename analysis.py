@@ -383,19 +383,19 @@ def create_stats(operator, game_type, map_name, start_date, end_date):
     
     # Calculate basic stats
     avg_skill = round(filtered_data['Skill'].mean(), 2)
-    total_kills = filtered_data['Kills'].sum()
-    total_deaths = filtered_data['Deaths'].sum()
-    kd_ratio = (total_kills / total_deaths).round(2)
-    win_rate = (filtered_data['Match Outcome'] == 'win').mean().round(3) * 100
-    accuracy = (filtered_data['Hits'].sum() / filtered_data['Shots'].sum()).round(3) * 100
-    avg_score = filtered_data['Score'].mean().round(0)
+    total_kills = int(filtered_data['Kills'].sum())
+    total_deaths = int(filtered_data['Deaths'].sum())
+    kd_ratio = round(total_kills / total_deaths, 2)
+    win_rate = round((filtered_data['Match Outcome'] == 'win').mean() * 100, 1)
+    accuracy = round((filtered_data['Hits'].sum() / filtered_data['Shots'].sum()) * 100, 1)
+    avg_score = int(round(filtered_data['Score'].mean(), 0))
     
     # Calculate streaks
-    kill_streak = filtered_data['Longest Streak'].max()
+    kill_streak = int(filtered_data['Longest Streak'].max())
     
     # Calculate time-based stats
-    total_time = filtered_data['Lifetime Time Played'].sum()
-    kills_per_min = (total_kills / total_time * 60).round(2)
+    total_time = int(filtered_data['Lifetime Time Played'].sum())
+    kills_per_min = round((total_kills / total_time * 60), 2)
     
     return dbc.Card([
         dbc.CardBody([
