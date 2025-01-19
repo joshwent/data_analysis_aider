@@ -743,7 +743,6 @@ app.layout = dbc.Container([
             html.Div("- or -", 
                     className="text-center mb-3",
                     style={'color': 'var(--text-secondary)'}),
-            html.Div(id='upload-status', style={'marginBottom': '10px'}),
             dcc.Upload(
                 id='upload-data',
                 children=html.Div([
@@ -761,7 +760,8 @@ app.layout = dbc.Container([
                     'margin': '10px 0'
                 },
                 multiple=False
-            )
+            ),
+            html.Div(id='upload-status', style={'marginBottom': '10px'})
         ], width=12, style={
             'background': 'var(--bg-card)',
             'padding': '20px',
