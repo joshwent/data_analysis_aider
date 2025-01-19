@@ -3,6 +3,10 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from dash import Dash, html, dcc, Input, Output, State, callback, callback_context, no_update
+import pandas as pd
+
+# Global data variable
+data = pd.read_csv('data2.csv')
 import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
 
@@ -837,12 +841,13 @@ def map_select_all(select_clicks, deselect_clicks, options):
      Output('map-checklist', 'options'),
      Output('date-range-picker', 'min_date_allowed'),
      Output('date-range-picker', 'max_date_allowed'),
-     Output('date-range-picker', 'start_date'),
-     Output('date-range-picker', 'end_date')],
+     Output('date-range-picker', 'start_date', allow_duplicate=True),
+     Output('date-range-picker', 'end_date', allow_duplicate=True)],
     [Input('upload-data', 'contents'),
      Input('date-range-picker', 'start_date'),
      Input('date-range-picker', 'end_date')],
-    [State('upload-data', 'filename')]
+    [State('upload-data', 'filename')],
+    prevent_initial_call=True
 )
 def update_data(contents, start_date, end_date, filename):
     ctx = callback_context
@@ -869,8 +874,8 @@ def update_data(contents, start_date, end_date, filename):
     try:
         if 'html' in filename.lower():
             # Parse HTML file and update global data
-            global data
             data = parse_html_file(decoded.decode('utf-8'))
+            global data
             
             # Apply the same filters as initial CSV data
             data = data[data['Game Type'] != 'Pentathlon Hint (TDM Example: Eliminate the other team or be holding the flag when time runs out.)']
