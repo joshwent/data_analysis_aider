@@ -129,17 +129,15 @@ def create_plots(operator, game_type, map_name, start_date, end_date):
         x='Local Time',
         y='Skill',
         title="Skill Progression Over Time",
-        height=300
+        height=300,
+        width=600,
+        color_discrete_sequence=['#5B9AFF']
     )
-    skill_plot.update_traces(line_color='#5B9AFF', line_width=2)
+    skill_plot.update_traces(line_width=2)
     skill_plot.update_layout(
         template="plotly_dark",
-        plot_bgcolor='rgba(24, 27, 31, 0.8)',
-        paper_bgcolor='rgba(24, 27, 31, 0.8)',
-        margin=dict(l=40, r=20, t=40, b=40),
-        title_x=0.5,
-        title_font=dict(size=16),
-        font=dict(family="Roboto", size=12, color="#D8D9DA")
+        xaxis_title='Time',
+        yaxis_title='Skill Rating'
     )
     
     # KD ratio by hour as a bar chart with 12-hour format
