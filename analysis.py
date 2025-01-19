@@ -966,9 +966,7 @@ def update_data(contents, example_clicks, start_date, end_date, filename):
     return (
         html.Div([
             html.I(className="fas fa-check-circle", style={'color': 'green', 'marginRight': '10px'}),
-            success_message,
-            html.Div("Dashboard updated with new data", 
-                    style={'color': 'var(--text-secondary)', 'fontSize': '0.9em', 'marginTop': '5px'})
+            success_message
         ]),
         operator_options,
         game_type_options,
