@@ -49,26 +49,22 @@ game_type_select = game_type_group[1]
 map_group = create_checkbox_group('Select Maps', list(data['Map'].unique()))
 map_select = map_group[1]
 
-# Create filter accordion
-filter_accordion = pn.Accordion(
-    ('Operators', operator_group),
-    ('Game Types', game_type_group),
-    ('Maps', map_group),
-    width=250,
-    active=[0],  # Open first panel by default
-    sizing_mode='fixed'
-)
+# Create filter accordion using Dash components
+filter_accordion = dbc.Accordion([
+    dbc.AccordionItem(operator_group, title="Operators", item_id="operators"),
+    dbc.AccordionItem(game_type_group, title="Game Types", item_id="game-types"),
+    dbc.AccordionItem(map_group, title="Maps", item_id="maps")
+], active_item="operators", style={"width": "250px"})
 
-
-date_range = pn.widgets.DatetimeRangePicker(
-    name='Date Range',
-    start=data['Local Time'].min().replace(tzinfo=None),
-    end=data['Local Time'].max().replace(tzinfo=None),
-    value=(data['Local Time'].min().replace(tzinfo=None),
-           data['Local Time'].max().replace(tzinfo=None)),
-    width=220,
-    styles={
-        'background': 'rgb(30, 30, 30)',
+# Create date range picker using Dash component
+date_range = dcc.DatePickerRange(
+    id='date-range-picker',
+    min_date_allowed=data['Local Time'].min().replace(tzinfo=None),
+    max_date_allowed=data['Local Time'].max().replace(tzinfo=None),
+    start_date=data['Local Time'].min().replace(tzinfo=None),
+    end_date=data['Local Time'].max().replace(tzinfo=None),
+    style={
+        'background-color': 'rgb(30, 30, 30)',
         'padding': '10px',
         'border-radius': '4px',
         'margin-top': '20px'
@@ -108,8 +104,16 @@ def get_filtered_data(operators, game_types, maps, date_range):
     
     return filtered
 
-@pn.depends(operator_select, game_type_select, map_select, date_range)
-def create_plots(operator, game_type, map_name, date_range):
+@callback(
+    Output('plots-container', 'children'),
+    [Input('operator-checklist', 'value'),
+     Input('game-type-checklist', 'value'),
+     Input('map-checklist', 'value'),
+     Input('date-range-picker', 'start_date'),
+     Input('date-range-picker', 'end_date')]
+)
+def create_plots(operator, game_type, map_name, start_date, end_date):
+    date_range = (start_date, end_date)
     filtered_data = get_filtered_data(operator, game_type, map_name, date_range)
     
     # Calculate metrics with proper handling of edge cases
@@ -300,17 +304,19 @@ def create_plots(operator, game_type, map_name, date_range):
         xaxis_tickangle=45
     )
     
-    # Convert Plotly figures to Panel panes
-    skill_plot_pane = pn.pane.Plotly(skill_plot)
-    kd_by_hour_pane = pn.pane.Plotly(kd_by_hour)
-    accuracy_hist_pane = pn.pane.Plotly(accuracy_hist)
-    kd_hist_pane = pn.pane.Plotly(kd_hist)
-    skill_hist_pane = pn.pane.Plotly(skill_hist)
-    metrics_plot_pane = pn.pane.Plotly(metrics_plot)
-    map_performance_pane = pn.pane.Plotly(map_performance)
-    headshot_plot_pane = pn.pane.Plotly(headshot_plot)
-    damage_plot_pane = pn.pane.Plotly(damage_plot)
-    outcome_plot_pane = pn.pane.Plotly(outcome_plot)
+    # Create Dash graph components
+    plots = [
+        dcc.Graph(figure=skill_plot, id='skill-plot'),
+        dcc.Graph(figure=kd_by_hour, id='kd-by-hour-plot'),
+        dcc.Graph(figure=accuracy_hist, id='accuracy-hist'),
+        dcc.Graph(figure=kd_hist, id='kd-hist'),
+        dcc.Graph(figure=skill_hist, id='skill-hist'),
+        dcc.Graph(figure=metrics_plot, id='metrics-plot'),
+        dcc.Graph(figure=map_performance, id='map-performance'),
+        dcc.Graph(figure=headshot_plot, id='headshot-plot'),
+        dcc.Graph(figure=damage_plot, id='damage-plot'),
+        dcc.Graph(figure=outcome_plot, id='outcome-plot')
+    ]
     
     # Create activity heatmap
     activity_df = filtered_data.groupby(['Day', 'Hour']).size().reset_index(name='Count')
@@ -343,27 +349,17 @@ def create_plots(operator, game_type, map_name, date_range):
     
     activity_heatmap_pane = pn.pane.Plotly(activity_heatmap)
     
-    # Create a responsive grid layout for plots with fixed column widths
-    layout = pn.GridBox(
-        skill_plot_pane,
-        kd_by_hour_pane,
-        accuracy_hist_pane,
-        kd_hist_pane,
-        skill_hist_pane,
-        metrics_plot_pane,
-        headshot_plot_pane,
-        damage_plot_pane,
-        outcome_plot_pane,
-        map_performance_pane,
-        activity_heatmap_pane,
-        ncols=2,
-        sizing_mode='fixed',
-        width=1200,
-        styles={
-            'grid-gap': '1rem',
+    # Create responsive grid layout using Dash
+    layout = html.Div(
+        plots,
+        style={
+            'display': 'grid',
+            'grid-template-columns': 'repeat(2, 1fr)',
+            'gap': '1rem',
             'padding': '1rem',
             'background': 'var(--bg-dark)',
-            'margin': '0 auto'  # Center the grid
+            'margin': '0 auto',
+            'max-width': '1200px'
         }
     )
     return layout
