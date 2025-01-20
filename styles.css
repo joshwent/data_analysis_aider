@@ -205,3 +205,18 @@ body {
 .js-plotly-plot .plotly .modebar-btn path {
     fill: var(--text-secondary) !important;
 }
+
+.plot-container {
+    margin: 10px;
+    padding: 15px;
+    background: var(--bg-card);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.plots-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 20px;
+}

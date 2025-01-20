@@ -286,6 +286,150 @@
                 template: 'plotly_dark',
                 height: 300
             });
+
+            // Accuracy distribution
+            const accuracyData = filteredData.map(d => Number(d.Hits) / Number(d.Shots) * 100);
+            Plotly.newPlot('accuracy-hist', [{
+                x: accuracyData,
+                type: 'histogram',
+                nbinsx: 30,
+                marker: { color: 'orange' }
+            }], {
+                title: 'Accuracy Distribution',
+                xaxis: { title: 'Accuracy %' },
+                yaxis: { title: 'Number of Matches' },
+                template: 'plotly_dark',
+                height: 300
+            });
+
+            // K/D distribution
+            const kdData = filteredData.map(d => Number(d.Kills) / Math.max(1, Number(d.Deaths)));
+            Plotly.newPlot('kd-hist', [{
+                x: kdData,
+                type: 'histogram',
+                nbinsx: 30,
+                marker: { color: 'red' }
+            }], {
+                title: 'K/D Ratio Distribution',
+                xaxis: { title: 'K/D Ratio' },
+                yaxis: { title: 'Number of Matches' },
+                template: 'plotly_dark',
+                height: 300
+            });
+
+            // Skill distribution
+            Plotly.newPlot('skill-hist', [{
+                x: filteredData.map(d => Number(d.Skill)),
+                type: 'histogram',
+                nbinsx: 30,
+                marker: { color: 'cyan' }
+            }], {
+                title: 'Skill Distribution',
+                xaxis: { title: 'Skill Rating' },
+                yaxis: { title: 'Number of Matches' },
+                template: 'plotly_dark',
+                height: 300
+            });
+
+            // Performance metrics over time
+            const metricsData = [{
+                x: filteredData.map(d => d['UTC Timestamp']),
+                y: kdData,
+                name: 'K/D Ratio',
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#5B9AFF' }
+            }, {
+                x: filteredData.map(d => d['UTC Timestamp']),
+                y: accuracyData,
+                name: 'Accuracy',
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#00ff00' }
+            }];
+            Plotly.newPlot('metrics-plot', metricsData, {
+                title: 'Performance Metrics Over Time',
+                template: 'plotly_dark',
+                height: 300
+            });
+
+            // Map performance
+            const mapStats = {};
+            filteredData.forEach(d => {
+                if (!mapStats[d.Map]) mapStats[d.Map] = { kills: 0, deaths: 0 };
+                mapStats[d.Map].kills += Number(d.Kills);
+                mapStats[d.Map].deaths += Number(d.Deaths);
+            });
+
+            const mapKD = Object.entries(mapStats).map(([map, data]) => ({
+                map,
+                kd: data.kills / Math.max(1, data.deaths)
+            })).sort((a, b) => b.kd - a.kd);
+
+            Plotly.newPlot('map-performance', [{
+                x: mapKD.map(d => d.map),
+                y: mapKD.map(d => d.kd),
+                type: 'bar',
+                marker: { color: 'purple' }
+            }], {
+                title: 'K/D Ratio by Map',
+                xaxis: { tickangle: 45 },
+                template: 'plotly_dark',
+                height: 300
+            });
+
+            // Headshot ratio over time
+            const headshotData = {
+                x: filteredData.map(d => d['UTC Timestamp']),
+                y: filteredData.map(d => Number(d.Headshots) / Math.max(1, Number(d.Kills))),
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#ff4d4d', width: 2 }
+            };
+            Plotly.newPlot('headshot-plot', [headshotData], {
+                title: 'Headshot Ratio Over Time',
+                yaxis: { title: 'Headshot Ratio' },
+                template: 'plotly_dark',
+                height: 300
+            });
+
+            // Damage efficiency
+            Plotly.newPlot('damage-plot', [{
+                x: filteredData.map(d => Number(d['Damage Taken'])),
+                y: filteredData.map(d => Number(d['Damage Done'])),
+                mode: 'markers',
+                type: 'scatter',
+                marker: {
+                    color: filteredData.map(d => d['Match Outcome'].toLowerCase().includes('win') ? '#00ff00' : '#ff0000'),
+                    size: 8
+                }
+            }], {
+                title: 'Damage Efficiency (Done vs Taken)',
+                xaxis: { title: 'Damage Taken' },
+                yaxis: { title: 'Damage Done' },
+                template: 'plotly_dark',
+                height: 300
+            });
+
+            // Match outcomes pie chart
+            const outcomes = {};
+            filteredData.forEach(d => {
+                const outcome = d['Match Outcome'];
+                outcomes[outcome] = (outcomes[outcome] || 0) + 1;
+            });
+
+            Plotly.newPlot('outcome-plot', [{
+                values: Object.values(outcomes),
+                labels: Object.keys(outcomes),
+                type: 'pie',
+                marker: {
+                    colors: ['#00ff00', '#ff0000', '#ffff00']
+                }
+            }], {
+                title: 'Match Outcomes Distribution',
+                template: 'plotly_dark',
+                height: 300
+            });
         }
 
         // Initialize Pyodide and load dependencies
@@ -443,8 +587,33 @@
                 updatePlots();
             });
             
-            // Repeat for game types and maps...
-            // Add similar event listeners for other select/deselect buttons
+            document.getElementById('game-type-select-all').addEventListener('click', () => {
+                document.querySelectorAll('#game-type-checklist input[type="checkbox"]')
+                    .forEach(cb => cb.checked = true);
+                updateStats();
+                updatePlots();
+            });
+            
+            document.getElementById('game-type-deselect-all').addEventListener('click', () => {
+                document.querySelectorAll('#game-type-checklist input[type="checkbox"]')
+                    .forEach(cb => cb.checked = false);
+                updateStats();
+                updatePlots();
+            });
+
+            document.getElementById('map-select-all').addEventListener('click', () => {
+                document.querySelectorAll('#map-checklist input[type="checkbox"]')
+                    .forEach(cb => cb.checked = true);
+                updateStats();
+                updatePlots();
+            });
+            
+            document.getElementById('map-deselect-all').addEventListener('click', () => {
+                document.querySelectorAll('#map-checklist input[type="checkbox"]')
+                    .forEach(cb => cb.checked = false);
+                updateStats();
+                updatePlots();
+            });
             
             // Add change listeners for all filters
             ['operator-checklist', 'game-type-checklist', 'map-checklist'].forEach(id => {
