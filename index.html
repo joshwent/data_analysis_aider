@@ -78,7 +78,6 @@ dashboard_html = app.index()
                 // Get the HTML from Python and insert it into the container
                 const container = document.getElementById('dash-container');
                 container.innerHTML = pyodide.globals.get('dashboard_html');
-`);
                 
                 console.log("Dashboard initialized successfully");
                 
