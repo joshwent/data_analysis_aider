@@ -4,99 +4,43 @@
     <title>Game Analytics</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/darkly/bootstrap.min.css">
     <link rel="stylesheet" href="styles.css">
+    <!-- Add JupyterLite dependencies -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="https://jupyterlite.readthedocs.io/en/latest/_static/style.css">
+    <script src="https://jupyterlite.readthedocs.io/en/latest/_static/jupyterlite.js"></script>
 </head>
 <body>
     <div id="app">
         <div id="loading" class="loading">Loading Python environment...</div>
         <div id="error" class="error" style="display:none"></div>
-        <div id="content" style="display:none; width: 100%; height: 100%;">
-            <!-- Dash app will be mounted here -->
-        </div>
+        <div id="jupyter-lite-container"></div>
     </div>
 
     <script>
-        async function initPyodide() {
+        async function initJupyterLite() {
             try {
-                // Initialize Pyodide
-                let pyodide = await loadPyodide();
-                console.log("Pyodide initialized");
+                // Initialize JupyterLite
+                const kernel = await window.jupyterlite.createKernel('python');
                 
-                // Install micropip first
-                await pyodide.loadPackage('micropip');
-                console.log("Micropip installed");
+                // Execute the Python code
+                const code = `
+                import micropip
+                await micropip.install(['dash', 'plotly', 'pandas', 'dash-bootstrap-components'])
                 
-                // Use micropip to install required packages
-                await pyodide.runPythonAsync(`
-                    import micropip
-                    await micropip.install('plotly')
-                    await micropip.install('dash')
-                    await micropip.install('dash-core-components')
-                    await micropip.install('dash-html-components')
-                    await micropip.install('dash-bootstrap-components')
-                    await micropip.install('beautifulsoup4')
-                `);
-                console.log("Required packages installed");
+                from dash import Dash, html, dcc
+                import dash_bootstrap_components as dbc
                 
-                // Now load numpy and pandas
-                await pyodide.loadPackage(['numpy', 'pandas']);
-                console.log("Numpy and Pandas loaded");
+                # Import your analysis code
+                import analysis
                 
-                // Load html_parser.py first since analysis.py depends on it
-                const parserResponse = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/html_parser.py');
-                const parserCode = await parserResponse.text();
-                pyodide.FS.writeFile('html_parser.py', parserCode);
-                console.log("HTML parser loaded");
+                # Create and display the app
+                app = analysis.app
+                app.run_server(mode='inline')
+                `;
                 
-                // Then load analysis.py
-                const analysisResponse = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/analysis.py');
-                const analysisCode = await analysisResponse.text();
-                pyodide.FS.writeFile('analysis.py', analysisCode);
-                console.log("Analysis code loaded");
+                await kernel.execute(code);
                 
-                // Now run the Python code and display the Dash app
-                await pyodide.runPythonAsync(`
-                    import sys
-                    import html_parser
-                    import analysis
-                    from dash import no_update
-                    import dash.exceptions
-                    
-                    # Initialize the app
-                    app = analysis.app
-                    
-                    # Create initial layout
-                    layout_html = str(app.layout)
-                    
-                    # Insert into content div
-                    from js import document, console
-                    content_div = document.getElementById('content')
-                    console.log("Content div found:", content_div is not None)
-                    console.log("Layout HTML length:", len(layout_html))
-                    content_div.innerHTML = layout_html
-                    
-                    # Initialize the callbacks
-                    app._setup_dev_tools()
-                    app._setup_server()
-                    
-                    print("App initialization complete", file=sys.stderr)
-                `);
-                console.log("Python code executed");
-                
-                // Make sure content div is visible
-                const contentDiv = document.getElementById('content');
-                const loadingDiv = document.getElementById('loading');
-                
-                if (contentDiv && loadingDiv) {
-                    loadingDiv.style.display = 'none';
-                    contentDiv.style.display = 'block';
-                    console.log("Content div HTML:", contentDiv.innerHTML.substring(0, 100) + "...");
-                } else {
-                    console.error("Could not find content or loading div");
-                }
-                
-                console.log("Display updated");
+                document.getElementById('loading').style.display = 'none';
                 
             } catch (error) {
                 console.error("Initialization error:", error);
@@ -107,8 +51,7 @@
             }
         }
 
-        // Start initialization when page loads
-        window.addEventListener('load', initPyodide);
+        window.addEventListener('load', initJupyterLite);
     </script>
 </body>
 </html>

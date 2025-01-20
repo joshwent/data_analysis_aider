@@ -1,0 +1,15 @@
+{
+  "jupyter-lite-schema-version": 0,
+  "jupyter-config-data": {
+    "disabledExtensions": [],
+    "federated_extensions": [
+      "jupyterlab-plotly",
+      "jupyterlab-dash"
+    ],
+    "settingsOverrides": {
+      "@jupyterlab/apputils-extension:themes": {
+        "theme": "JupyterLab Dark"
+      }
+    }
+  }
+}
