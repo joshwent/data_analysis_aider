@@ -9,7 +9,7 @@ function parseHtmlFile(htmlContent) {
   }
 
   // Find the Call of Duty section
-  const codHeading = Array.from(doc.querySelectorAll('h1')).find(h1 => h1.textContent.trim() === " Call of Duty: Black Ops 6");
+  const codHeading = Array.from(doc.querySelectorAll('h1')).find(h1 => h1.textContent === " Call of Duty: Black Ops 6");
   if (!codHeading) {
     throw new Error("Could not find Call of Duty: Black Ops 6 heading");
   }
