@@ -475,11 +475,12 @@
         async function handleFileUpload(file) {
             try {
                 const content = await file.text();
+                const escapedContent = content.replace(/`/g, '\\`');
                 const result = await pyodide.runPythonAsync(`
-                    from html_parser import parse_html_file
-                    df = parse_html_file('''${content}''')
-                    df.to_json(orient='records')
-                `);
+from html_parser import parse_html_file
+df = parse_html_file("""${escapedContent}""")
+df.to_json(orient='records')
+`);
                 
                 globalData = JSON.parse(result);
                 console.log("Data loaded:", globalData.length, "records");
