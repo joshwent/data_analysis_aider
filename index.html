@@ -3,55 +3,26 @@
 <head>
     <title>Game Analytics</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/darkly/bootstrap.min.css">
-    <link rel="stylesheet" href="styles.css">
-    <!-- Add JupyterLite dependencies -->
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-    <link rel="stylesheet" href="https://jupyterlite.readthedocs.io/en/latest/_static/style.css">
-    <script src="https://jupyterlite.readthedocs.io/en/latest/_static/jupyterlite.js"></script>
+    <link rel="stylesheet" href="static/css/styles.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        #app-container {
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <div id="loading" class="loading">Loading Python environment...</div>
-        <div id="error" class="error" style="display:none"></div>
-        <div id="jupyter-lite-container"></div>
-    </div>
-
-    <script>
-        async function initJupyterLite() {
-            try {
-                // Initialize JupyterLite
-                const kernel = await window.jupyterlite.createKernel('python');
-                
-                // Execute the Python code
-                const code = `
-                import micropip
-                await micropip.install(['dash', 'plotly', 'pandas', 'dash-bootstrap-components'])
-                
-                from dash import Dash, html, dcc
-                import dash_bootstrap_components as dbc
-                
-                # Import your analysis code
-                import analysis
-                
-                # Create and display the app
-                app = analysis.app
-                app.run_server(mode='inline')
-                `;
-                
-                await kernel.execute(code);
-                
-                document.getElementById('loading').style.display = 'none';
-                
-            } catch (error) {
-                console.error("Initialization error:", error);
-                document.getElementById('loading').style.display = 'none';
-                const errorDiv = document.getElementById('error');
-                errorDiv.textContent = `Error initializing: ${error}`;
-                errorDiv.style.display = 'block';
-            }
-        }
-
-        window.addEventListener('load', initJupyterLite);
-    </script>
+    <iframe 
+        id="app-container"
+        src="http://localhost:8000"
+        allowfullscreen
+    ></iframe>
 </body>
 </html>
