@@ -2,7 +2,8 @@ import datetime
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from dash import Dash, html, dcc, Input, Output, State, callback, callback_context, no_update, dash
+from dash import html, dcc, Input, Output, State, callback, callback_context, no_update, dash
+from jupyter_dash import JupyterDash
 import pandas as pd
 import dash_bootstrap_components as dbc
 
