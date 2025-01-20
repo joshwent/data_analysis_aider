@@ -11,7 +11,7 @@
     <div id="app">
         <div id="loading" class="loading">Loading Python environment...</div>
         <div id="error" class="error" style="display:none"></div>
-        <div id="content" style="display:none">
+        <div id="content" style="display:none; width: 100%; height: 100%;">
             <!-- Dash app will be mounted here -->
         </div>
     </div>
@@ -66,27 +66,36 @@
                     # Initialize the app
                     app = analysis.app
                     
-                    # Get the HTML representation directly
-                    html_string = app.index()
+                    # Create initial layout
+                    layout_html = str(app.layout)
                     
                     # Insert into content div
-                    from js import document
+                    from js import document, console
                     content_div = document.getElementById('content')
-                    content_div.innerHTML = html_string
+                    console.log("Content div found:", content_div is not None)
+                    console.log("Layout HTML length:", len(layout_html))
+                    content_div.innerHTML = layout_html
                     
                     # Initialize the callbacks
                     app._setup_dev_tools()
                     app._setup_server()
-                    app.callback_map = {}
-                    app._callback_list = []
                     
                     print("App initialization complete", file=sys.stderr)
                 `);
                 console.log("Python code executed");
                 
-                // Hide loading, show content
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
+                // Make sure content div is visible
+                const contentDiv = document.getElementById('content');
+                const loadingDiv = document.getElementById('loading');
+                
+                if (contentDiv && loadingDiv) {
+                    loadingDiv.style.display = 'none';
+                    contentDiv.style.display = 'block';
+                    console.log("Content div HTML:", contentDiv.innerHTML.substring(0, 100) + "...");
+                } else {
+                    console.error("Could not find content or loading div");
+                }
+                
                 console.log("Display updated");
                 
             } catch (error) {
