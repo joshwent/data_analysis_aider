@@ -4,18 +4,16 @@
     <title>Game Analytics</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/darkly/bootstrap.min.css">
     <link rel="stylesheet" href="static/css/styles.css">
-    <!-- Add correct JupyterLite dependencies -->
+    <!-- Use RetroLab distribution -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-    <!-- Use official JupyterLite distribution -->
-    <script src="https://cdn.jsdelivr.net/npm/@jupyterlite/javascript-kernel-core/dist/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@jupyterlite/server/dist/index.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jupyterlite/theme-light/style/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/@retrolab/lab@0.4.0/dist/retro.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@retrolab/lab@0.4.0/dist/style.css" rel="stylesheet">
 </head>
 <body>
     <div id="app">
         <div id="loading">Loading Python environment...</div>
         <div id="error" style="display:none"></div>
-        <div id="jupyter-lite-container"></div>
+        <div id="retro-container" style="height: 100vh;"></div>
     </div>
 
     <script>
@@ -27,14 +25,14 @@
                 });
                 console.log("Pyodide loaded");
 
-                // Initialize JupyterLite
-                const { JupyterLiteServer } = window.jupyterlite;
-                const server = new JupyterLiteServer({});
-                await server.ready;
-                console.log("JupyterLite server ready");
+                // Initialize RetroLab
+                const lab = await window.retro.createNotebook({
+                    container: 'retro-container'
+                });
+                console.log("RetroLab initialized");
 
-                // Create kernel
-                const kernel = await server.kernelspecs.startNew('python');
+                // Get the kernel
+                const kernel = await lab.createKernel('python');
                 console.log("Kernel created");
 
                 // Execute the setup code
@@ -53,7 +51,7 @@
                     print("Dash app started")
                 `;
                 
-                await kernel.requestExecute({ code: setupCode }).done;
+                await kernel.execute(setupCode);
                 document.getElementById('loading').style.display = 'none';
                 
             } catch (error) {
