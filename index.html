@@ -35,7 +35,8 @@ await micropip.install([
     'dash',
     'dash-core-components',
     'dash-html-components',
-    'dash-bootstrap-components'
+    'dash-bootstrap-components',
+    'jupyter-dash'
 ])
 print("Additional packages installed successfully")
 `);
@@ -57,11 +58,19 @@ html_parser = types.ModuleType('html_parser')
 exec(html_parser_code, html_parser.__dict__)
 sys.modules['html_parser'] = html_parser
 
+# Modify the Dash initialization to use JupyterDash
+from jupyter_dash import JupyterDash
+app = JupyterDash(__name__, 
+                  external_stylesheets=[dbc.themes.DARKLY],
+                  meta_tags=[{'name': 'viewport',
+                            'content': 'width=device-width, initial-scale=1.0'}],
+                  suppress_callback_exceptions=True)
+
 # Now execute the analysis code
 ${analysisCode}
 
-# Run the Dash app
-app.run_server(debug=True, host='0.0.0.0', port=8050)
+# Run the app in JupyterDash mode
+app.run_server(mode='inline', port=8050, host='0.0.0.0')
 `);
                 
                 console.log("Dashboard initialized successfully");

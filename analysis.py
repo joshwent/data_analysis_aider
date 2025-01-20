@@ -10,12 +10,12 @@ import dash_bootstrap_components as dbc
 global data
 data = pd.DataFrame()  # Start with empty DataFrame
 
-# Initialize the Dash app
-app = Dash(__name__, 
-          external_stylesheets=[dbc.themes.DARKLY],
-          meta_tags=[{'name': 'viewport',
-                     'content': 'width=device-width, initial-scale=1.0'}],
-          suppress_callback_exceptions=True)
+# Initialize the Dash app (this will be overridden by JupyterDash in the browser)
+app = JupyterDash(__name__, 
+                 external_stylesheets=[dbc.themes.DARKLY],
+                 meta_tags=[{'name': 'viewport',
+                           'content': 'width=device-width, initial-scale=1.0'}],
+                 suppress_callback_exceptions=True)
 
 from html_parser import parse_html_file
 import base64
