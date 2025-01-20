@@ -47,6 +47,8 @@ print("Additional packages installed successfully")
                 const parserCode = await parserResponse.text();
                 
                 await pyodide.runPythonAsync(`
+import sys
+import os
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -55,7 +57,16 @@ from dash.dependencies import Input, Output, State
 import plotly.express as px
 import pandas as pd
 
+# Create a virtual module for html_parser
+html_parser_code = """
 ${parserCode}
+"""
+import types
+html_parser = types.ModuleType('html_parser')
+exec(html_parser_code, html_parser.__dict__)
+sys.modules['html_parser'] = html_parser
+
+# Now execute the analysis code
 ${analysisCode}
 `);
                 
