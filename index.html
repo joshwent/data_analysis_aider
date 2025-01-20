@@ -21,8 +21,15 @@
                 document.getElementById('dash-container').innerHTML = 
                     '<div class="loading">Loading dashboard...</div>';
                 
-                await pyodide.loadPackage(['dash', 'pandas', 'plotly']);
-                console.log("Packages loaded successfully");
+                await pyodide.loadPackage(['pandas', 'plotly']);
+                console.log("Base packages loaded successfully");
+                
+                // Install Dash and dependencies via micropip
+                await pyodide.runPythonAsync(`
+                    import micropip
+                    await micropip.install(['dash', 'dash-core-components', 'dash-html-components', 'dash-bootstrap-components'])
+                `);
+                console.log("Dash packages installed successfully");
                 
                 const analysisResponse = await fetch('analysis.py');
                 const analysisCode = await analysisResponse.text();
