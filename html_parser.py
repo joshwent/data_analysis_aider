@@ -13,7 +13,7 @@ def parse_html_file(html_content):
         raise ValueError("Could not find Copy of Your Data section")
         
     # Find the Call of Duty section
-    cod_heading = data_section.find_next('h1', string=" Call of Duty: Black Ops 6")
+    cod_heading = data_section.find_next('h1', string="Call of Duty: Black Ops 6")
     if not cod_heading:
         raise ValueError("Could not find Call of Duty: Black Ops 6 heading")
         
