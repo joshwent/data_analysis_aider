@@ -10,12 +10,13 @@ import dash_bootstrap_components as dbc
 global data
 data = pd.DataFrame()  # Start with empty DataFrame
 
-# Initialize the Dash app
+# Initialize the Dash app with WebDash configuration
 app = Dash(__name__, 
            external_stylesheets=[dbc.themes.DARKLY],
            meta_tags=[{'name': 'viewport',
                       'content': 'width=device-width, initial-scale=1.0'}],
-           suppress_callback_exceptions=True)
+           suppress_callback_exceptions=True,
+           webdash=True)
 
 from html_parser import parse_html_file
 import base64
@@ -816,16 +817,3 @@ def update_data(contents, example_clicks, start_date, end_date, filename):
         None
     )
 
-# Mount the app to the container
-app.clientside_callback(
-    """
-    function(n) {
-        return document.getElementById('dash-container').innerHTML;
-    }
-    """,
-    Output('dash-container', 'children'),
-    Input('_', 'data')
-)
-
-if __name__ == '__main__':
-    app.layout = app.layout  # This ensures the layout is properly initialized
