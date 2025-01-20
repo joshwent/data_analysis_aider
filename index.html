@@ -4,7 +4,7 @@
     <title>Game Analytics</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/darkly/bootstrap.min.css">
     <link rel="stylesheet" href="static/css/styles.css">
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script src="parser.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -432,33 +432,7 @@
             });
         }
 
-        // Initialize Pyodide and load dependencies
-        async function initPyodide() {
-            try {
-                pyodide = await loadPyodide({
-                    indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
-                });
-                console.log("Pyodide loaded");
-
-                // Load required packages
-                await pyodide.loadPackage(['micropip']);
-                await pyodide.runPythonAsync(`
-                    import micropip
-                    await micropip.install(['pandas', 'beautifulsoup4'])
-                    print("Required packages installed")
-                `);
-
-                // Load the HTML parser
-                const response = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/html_parser.py');
-                const parserContent = await response.text();
-                pyodide.runPython(parserContent);
-                console.log("HTML parser loaded");
-
-            } catch (error) {
-                console.error("Initialization error:", error);
-                showError("Failed to initialize Python environment: " + error.message);
-            }
-        }
+        // No initialization needed for JavaScript implementation
 
         // Utility functions
         function showError(message) {
@@ -475,14 +449,7 @@
         async function handleFileUpload(file) {
             try {
                 const content = await file.text();
-                const escapedContent = content.replace(/`/g, '\\`');
-                const result = await pyodide.runPythonAsync(`
-from html_parser import parse_html_file
-df = parse_html_file("""${escapedContent}""")
-df.to_json(orient='records')
-`);
-                
-                globalData = JSON.parse(result);
+                globalData = parseHtmlFile(content);
                 console.log("Data loaded:", globalData.length, "records");
                 
                 updateFilters();
@@ -543,8 +510,7 @@ df.to_json(orient='records')
 
         // Event Listeners
         document.addEventListener('DOMContentLoaded', async () => {
-            // Initialize Pyodide
-            await initPyodide();
+            // No initialization needed
             
             // File upload handling
             const fileInput = document.getElementById('file-input');
