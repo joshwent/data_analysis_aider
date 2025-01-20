@@ -27,36 +27,36 @@
                 
                 // Install additional packages via micropip
                 await pyodide.runPythonAsync(`
-                    import micropip
-                    print("Installing additional packages...")
-                    await micropip.install([
-                        'plotly',
-                        'dash',
-                        'dash-core-components',
-                        'dash-html-components',
-                        'dash-bootstrap-components'
-                    ])
-                    print("Additional packages installed successfully")
-                `);
+import micropip
+print("Installing additional packages...")
+await micropip.install([
+    'plotly',
+    'dash',
+    'dash-core-components',
+    'dash-html-components',
+    'dash-bootstrap-components'
+])
+print("Additional packages installed successfully")
+`);
                 
-                const analysisResponse = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/analysis.py');
+                const analysisResponse = await fetch('analysis.py');
                 const analysisCode = await analysisResponse.text();
                 
-                const parserResponse = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/html_parser.py');
+                const parserResponse = await fetch('html_parser.py');
                 const parserCode = await parserResponse.text();
                 
                 await pyodide.runPythonAsync(`
-                    import dash
-                    import dash_core_components as dcc
-                    import dash_html_components as html
-                    import dash_bootstrap_components as dbc
-                    from dash.dependencies import Input, Output, State
-                    import plotly.express as px
-                    import pandas as pd
-                    
-                    ${parserCode}
-                    ${analysisCode}
-                `);
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+import dash_bootstrap_components as dbc
+from dash.dependencies import Input, Output, State
+import plotly.express as px
+import pandas as pd
+
+${parserCode}
+${analysisCode}
+`);
                 
                 console.log("Dashboard initialized successfully");
                 
