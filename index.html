@@ -55,7 +55,7 @@
                 await pyodide.runPythonAsync(`
                     import html_parser
                     import analysis
-                    from dash._utils import no_update
+                    from dash import no_update
                     import dash.exceptions
                     
                     # Get the HTML representation of the app layout
