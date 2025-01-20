@@ -51,20 +51,26 @@
                 // Write the analysis code to the virtual filesystem
                 pyodide.FS.writeFile('analysis.py', analysisCode);
                 
-                // Now run the Python code and mount the Dash app
+                // Now run the Python code and display the Dash app
                 await pyodide.runPythonAsync(`
                     import html_parser
                     import analysis
-                    # Mount the Dash app to the content div
-                    analysis.app.run(
-                        host="0.0.0.0",
-                        port=8050,
-                        mode="inline",
-                        debug=False,
-                        use_reloader=False,
-                        dev_tools_hot_reload=False,
-                        mount_target="content"
-                    )
+                    from dash._utils import no_update
+                    import dash.exceptions
+                    
+                    # Get the HTML representation of the app layout
+                    app_html = analysis.app.index()
+                    
+                    # Insert the app HTML into the content div
+                    from js import document
+                    content_div = document.getElementById('content')
+                    content_div.innerHTML = app_html
+                    
+                    # Initialize the callbacks
+                    analysis.app._setup_dev_tools()
+                    analysis.app._setup_server()
+                    analysis.app.callback_map = {}
+                    analysis.app._callback_list = []
                 `);
                 
                 // Hide loading, show content
