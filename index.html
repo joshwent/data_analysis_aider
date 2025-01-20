@@ -10,7 +10,7 @@
     <div id="app">
         <div id="loading">Loading Python environment...</div>
         <div id="error" style="display:none"></div>
-        <div id="jupyter-lite-container"></div>
+        <div id="dash-container"></div>
     </div>
 
     <script>
@@ -66,8 +66,22 @@
                     print("Analysis module imported")
                     
                     app = analysis.app
-                    app.run_server(mode='inline', port=8866)
-                    print("Dash app started")
+                    
+                    # Configure app for Pyodide environment
+                    app.config.update({
+                        'suppress_callback_exceptions': True,
+                        'update_title': None,
+                    })
+                    
+                    # Get the app layout and mount it
+                    layout_html = app.index()
+                    
+                    # Insert the layout into the container
+                    from js import document
+                    container = document.getElementById('dash-container')
+                    container.innerHTML = layout_html
+                    
+                    print("Dash app layout rendered")
                 `);
 
                 document.getElementById('loading').style.display = 'none';
