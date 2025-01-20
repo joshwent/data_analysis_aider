@@ -33,14 +33,20 @@
                     await micropip.install('dash-core-components')
                     await micropip.install('dash-html-components')
                     await micropip.install('dash-bootstrap-components')
+                    await micropip.install('beautifulsoup4')
                 `);
                 
                 // Now load numpy and pandas
                 await pyodide.loadPackage(['numpy', 'pandas']);
                 
-                // Load our Python files
-                const response = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/analysis.py');
-                const analysisCode = await response.text();
+                // Load html_parser.py first since analysis.py depends on it
+                const parserResponse = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/html_parser.py');
+                const parserCode = await parserResponse.text();
+                await pyodide.runPythonAsync(parserCode);
+                
+                // Then load analysis.py
+                const analysisResponse = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/analysis.py');
+                const analysisCode = await analysisResponse.text();
                 await pyodide.runPythonAsync(analysisCode);
                 
                 // Hide loading, show content
