@@ -4,29 +4,34 @@
     <title>Game Analytics</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/darkly/bootstrap.min.css">
     <link rel="stylesheet" href="static/css/styles.css">
-    <!-- Add RetroLite instead of JupyterLite -->
+    <!-- Add JupyterLite dependencies -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-    <script src="https://retro.jupyterlite.org/static/retro.js"></script>
-    <link href="https://retro.jupyterlite.org/static/retro.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://jupyterlite.readthedocs.io/en/latest/_static/style.css">
+    <script src="https://jupyterlite.readthedocs.io/en/latest/_static/jupyterlite.js"></script>
 </head>
 <body>
     <div id="app">
         <div id="loading">Loading Python environment...</div>
         <div id="error" style="display:none"></div>
-        <div id="retro-container" style="height: 100vh;"></div>
+        <div id="jupyter-lite-container"></div>
     </div>
 
     <script>
         async function initJupyterLite() {
             try {
-                // Initialize RetroLite
-                const lite = await RetroLite.create({
-                    container: 'retro-container'
+                // Wait for JupyterLite to be ready
+                await window.jupyterlite.ready;
+                console.log("JupyterLite ready");
+
+                // Initialize JupyterLite
+                const jupyterLite = new window.jupyterlite.JupyterLite({
+                    container: document.getElementById('jupyter-lite-container')
                 });
-                console.log("RetroLite initialized");
+                await jupyterLite.init();
+                console.log("JupyterLite initialized");
 
                 // Get the kernel
-                const kernel = await lite.createKernel('python');
+                const kernel = await jupyterLite.createKernel('python');
                 console.log("Kernel created");
 
                 // Execute the setup code
@@ -57,7 +62,18 @@
             }
         }
 
-        window.addEventListener('load', initJupyterLite);
+        // Wait for both DOM and JupyterLite to be ready
+        window.addEventListener('load', () => {
+            if (window.jupyterlite) {
+                initJupyterLite();
+            } else {
+                console.error("JupyterLite not found");
+                document.getElementById('loading').style.display = 'none';
+                const errorDiv = document.getElementById('error');
+                errorDiv.textContent = "Error: JupyterLite not found";
+                errorDiv.style.display = 'block';
+            }
+        });
     </script>
 </body>
 </html>
