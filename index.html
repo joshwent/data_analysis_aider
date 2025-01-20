@@ -84,19 +84,12 @@ dashboard_html = app.index()
 # Initialize the app's callbacks
 app._setup_server()
 
-# Set up the callback context
-from dash._callback_context import _callback_context
-_callback_context.record_timing = False
-_callback_context.scheduled_callbacks = []
-
-# Register all callbacks
+# Register and activate callbacks
 for callback in app._callback_list:
     callback.allow_duplicate = True
-    
-# Activate the callbacks
 app._activate_callbacks()
 
-# Update the layout
+# Force layout update
 app.layout = app.layout
 `);
 
