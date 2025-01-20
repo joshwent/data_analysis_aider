@@ -3,27 +3,47 @@
 <head>
     <title>Game Analytics</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/darkly/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-    <script src="https://webdash.dev/webdash.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
 <body>
-    <div id="dash-container"></div>
-    
+    <div id="app">
+        <div id="loading" class="loading">Loading Python environment...</div>
+        <div id="error" class="error" style="display:none"></div>
+        <div id="content" style="display:none">
+            <!-- Content will be dynamically populated -->
+        </div>
+    </div>
+
     <script>
-        WebDash.init({
-            files: {
-                'app.py': 'analysis.py',
-                'html_parser.py': 'html_parser.py'
-            },
-            requirements: [
-                'dash',
-                'dash-bootstrap-components',
-                'plotly',
-                'pandas',
-                'beautifulsoup4'
-            ],
-            container: 'dash-container'
-        });
+        async function initPyodide() {
+            try {
+                // Initialize Pyodide
+                let pyodide = await loadPyodide();
+                
+                // Install required packages
+                await pyodide.loadPackage(['numpy', 'pandas', 'plotly']);
+                
+                // Load our Python files
+                const response = await fetch('analysis.py');
+                const analysisCode = await response.text();
+                await pyodide.runPythonAsync(analysisCode);
+                
+                // Hide loading, show content
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+                
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                const errorDiv = document.getElementById('error');
+                errorDiv.textContent = `Error initializing: ${error}`;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Start initialization when page loads
+        window.addEventListener('load', initPyodide);
     </script>
 </body>
 </html>
