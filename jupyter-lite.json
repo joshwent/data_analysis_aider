@@ -4,7 +4,9 @@
     "disabledExtensions": [],
     "federated_extensions": [
       "jupyterlab-plotly",
-      "jupyterlab-dash"
+      "jupyterlab-dash",
+      "@jupyter-widgets/jupyterlab-manager",
+      "jupyterlab-pyodide"
     ],
     "settingsOverrides": {
       "@jupyterlab/apputils-extension:themes": {

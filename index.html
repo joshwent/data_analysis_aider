@@ -4,25 +4,53 @@
     <title>Game Analytics</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/darkly/bootstrap.min.css">
     <link rel="stylesheet" href="static/css/styles.css">
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-        }
-        #app-container {
-            width: 100%;
-            height: 100vh;
-            border: none;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script src="https://jupyterlite.readthedocs.io/en/latest/_static/jupyterlite.js"></script>
+    <link rel="stylesheet" href="https://jupyterlite.readthedocs.io/en/latest/_static/style.css">
 </head>
 <body>
-    <iframe 
-        id="app-container"
-        src="http://localhost:8000"
-        allowfullscreen
-    ></iframe>
+    <div id="app">
+        <div id="loading">Loading Python environment...</div>
+        <div id="error" style="display:none"></div>
+        <div id="jupyter-lite-container"></div>
+    </div>
+
+    <script>
+        async function initJupyterLite() {
+            try {
+                // Initialize JupyterLite kernel
+                const kernel = await window.jupyterlite.createKernel('python');
+                console.log("JupyterLite kernel created");
+
+                // Execute the setup code
+                const setupCode = `
+                    import micropip
+                    await micropip.install(['dash', 'plotly', 'pandas', 'dash-bootstrap-components'])
+                    print("Required packages installed")
+                    
+                    # Import your analysis code
+                    import analysis
+                    print("Analysis module imported")
+                    
+                    # Create and display the app
+                    app = analysis.app
+                    app.run_server(mode='jupyterlab', port=8866)
+                    print("Dash app started")
+                `;
+                
+                await kernel.execute(setupCode);
+                document.getElementById('loading').style.display = 'none';
+                
+            } catch (error) {
+                console.error("Initialization error:", error);
+                document.getElementById('loading').style.display = 'none';
+                const errorDiv = document.getElementById('error');
+                errorDiv.textContent = `Error initializing: ${error}`;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        window.addEventListener('load', initJupyterLite);
+    </script>
 </body>
 </html>
