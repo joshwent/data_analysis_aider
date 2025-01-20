@@ -81,16 +81,23 @@ dashboard_html = app.index()
 
                 // Initialize the callbacks
                 await pyodide.runPythonAsync(`
-# Initialize callbacks
-for callback in app.callback_map.values():
-    callback.allow_duplicate=True
-    
-# Register the callbacks with the app
+# Initialize the app's callbacks
 app._setup_server()
+
+# Set up the callback context
+from dash._callback_context import _callback_context
+_callback_context.record_timing = False
+_callback_context.scheduled_callbacks = []
+
+# Register all callbacks
+for callback in app._callback_list:
+    callback.allow_duplicate = True
+    
+# Activate the callbacks
 app._activate_callbacks()
 
 # Update the layout
-app._update_layout()
+app.layout = app.layout
 `);
 
                 // Trigger initial update
