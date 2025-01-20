@@ -514,27 +514,14 @@
             // Load example data button
             document.getElementById('load-example-data').addEventListener('click', async () => {
                 try {
-                    const response = await fetch('data2.csv');
+                    const response = await fetch('data.html');
                     if (!response.ok) {
                         throw new Error('Failed to load example data');
                     }
-                    const csvText = await response.text();
+                    const htmlContent = await response.text();
                     
-                    // Convert CSV to array of objects
-                    const lines = csvText.split('\n');
-                    const headers = lines[0].split(',').map(h => h.trim());
-                    
-                    globalData = lines.slice(1)
-                        .filter(line => line.trim())  // Skip empty lines
-                        .map(line => {
-                            const values = line.split(',');
-                            const row = {};
-                            headers.forEach((header, i) => {
-                                row[header] = values[i] ? values[i].trim() : '';
-                            });
-                            return row;
-                        });
-
+                    // Use our existing HTML parser
+                    globalData = parseHtmlFile(htmlContent);
                     console.log("Example data loaded:", globalData.length, "records");
                     
                     updateFilters();
