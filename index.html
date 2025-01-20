@@ -5,119 +5,109 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/darkly/bootstrap.min.css">
     <link rel="stylesheet" href="static/css/styles.css">
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-    <div id="app">
-        <div id="loading">Loading Python environment...</div>
-        <div id="error" style="display:none"></div>
-        <div id="dash-container"></div>
+    <div class="container-fluid" style="max-width: 1400px;">
+        <!-- Data Import Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="bg-card p-4 rounded">
+                    <h2 class="text-primary mb-3">Data Import</h2>
+                    <button id="load-example-data" class="btn btn-secondary w-100 mb-3">
+                        Load Example Data
+                    </button>
+                    <div class="text-center mb-3 text-secondary">- or -</div>
+                    <div id="upload-zone" class="border border-dashed rounded p-3 text-center">
+                        <div>Drag and Drop or</div>
+                        <button class="btn btn-primary btn-sm ms-2">Select HTML File</button>
+                        <input type="file" id="file-input" style="display: none;" accept=".html">
+                    </div>
+                    <div id="upload-status" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Filters Sidebar -->
+            <div class="col-3">
+                <div class="bg-card p-4 rounded">
+                    <h2 class="text-primary mb-3">Filters</h2>
+                    <div class="accordion" id="filterAccordion">
+                        <!-- Operators Filter -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#operatorCollapse">
+                                    Operators
+                                </button>
+                            </h2>
+                            <div id="operatorCollapse" class="accordion-collapse collapse show">
+                                <div class="accordion-body">
+                                    <div class="mb-2">
+                                        <button id="operator-select-all" class="btn btn-primary btn-sm me-2">Select All</button>
+                                        <button id="operator-deselect-all" class="btn btn-secondary btn-sm">Deselect All</button>
+                                    </div>
+                                    <div id="operator-checklist" class="filter-checklist"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Game Types Filter -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gameTypeCollapse">
+                                    Game Types
+                                </button>
+                            </h2>
+                            <div id="gameTypeCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-2">
+                                        <button id="game-type-select-all" class="btn btn-primary btn-sm me-2">Select All</button>
+                                        <button id="game-type-deselect-all" class="btn btn-secondary btn-sm">Deselect All</button>
+                                    </div>
+                                    <div id="game-type-checklist" class="filter-checklist"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Maps Filter -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mapCollapse">
+                                    Maps
+                                </button>
+                            </h2>
+                            <div id="mapCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-2">
+                                        <button id="map-select-all" class="btn btn-primary btn-sm me-2">Select All</button>
+                                        <button id="map-deselect-all" class="btn btn-secondary btn-sm">Deselect All</button>
+                                    </div>
+                                    <div id="map-checklist" class="filter-checklist"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Date Range Picker -->
+                    <div class="mt-4">
+                        <label class="form-label">Date Range</label>
+                        <input type="date" id="date-start" class="form-control mb-2">
+                        <input type="date" id="date-end" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-9">
+                <div id="stats-container"></div>
+                <hr class="my-4">
+                <div id="plots-container" class="plots-grid"></div>
+            </div>
+        </div>
     </div>
 
     <script>
-        async function loadPythonFile(pyodide, url, filename) {
-            try {
-                const response = await fetch(url);
-                const content = await response.text();
-                pyodide.FS.writeFile(filename, content);
-                console.log(`Loaded ${filename} from ${url}`);
-            } catch (error) {
-                console.error(`Error loading ${filename} from ${url}:`, error);
-                throw error;
-            }
-        }
-
-        async function initPyodide() {
-            try {
-                // Initialize Pyodide
-                const pyodide = await loadPyodide({
-                    indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
-                });
-                console.log("Pyodide loaded");
-
-                // Load required packages
-                await pyodide.loadPackage(['micropip']);
-                console.log("Micropip loaded");
-
-                // Install Python packages
-                await pyodide.runPythonAsync(`
-                    import micropip
-                    await micropip.install(['dash', 'plotly', 'pandas', 'dash-bootstrap-components', 'beautifulsoup4'])
-                    print("Required packages installed")
-                `);
-
-                // Load Python files from GitHub
-                await loadPythonFile(
-                    pyodide, 
-                    'https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/html_parser.py',
-                    'html_parser.py'
-                );
-                await loadPythonFile(
-                    pyodide, 
-                    'https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/analysis.py',
-                    'analysis.py'
-                );
-                console.log("Python files loaded from GitHub");
-
-                // Import and run analysis
-                await pyodide.runPythonAsync(`
-                    import sys
-                    sys.path.append('.')
-                    import analysis
-                    from dash import html
-                    print("Analysis module imported")
-                    
-                    app = analysis.app
-                    
-                    # Configure app for Pyodide environment
-                    app._config = {
-                        'suppress_callback_exceptions': True,
-                        'update_title': None,
-                        'use_pages': False
-                    }
-                    
-                    # Convert the layout to HTML string
-                    layout_components = app.layout() if callable(app.layout) else app.layout
-                    layout_html = layout_components.to_plotly_json()
-                    
-                    # Create a function to render components
-                    def render_component(component):
-                        if isinstance(component, dict):
-                            if component.get('type') == 'div':
-                                children = component.get('props', {}).get('children', [])
-                                if isinstance(children, list):
-                                    return '<div>' + ''.join(render_component(child) for child in children) + '</div>'
-                                else:
-                                    return '<div>' + render_component(children) + '</div>'
-                            elif component.get('type') == 'button':
-                                return f'<button>{component.get("props", {}).get("children", "")}</button>'
-                            # Add more component types as needed
-                        elif isinstance(component, str):
-                            return component
-                        return ''
-                    
-                    # Render the layout
-                    rendered_html = render_component(layout_html)
-                    
-                    # Insert the layout into the container
-                    from js import document
-                    container = document.getElementById('dash-container')
-                    container.innerHTML = rendered_html
-                    
-                    print("Dash app layout rendered")
-                `);
-
-                document.getElementById('loading').style.display = 'none';
-                
-            } catch (error) {
-                console.error("Initialization error:", error);
-                document.getElementById('loading').style.display = 'none';
-                const errorDiv = document.getElementById('error');
-                errorDiv.textContent = `Error initializing: ${error}`;
-                errorDiv.style.display = 'block';
-            }
-        }
-
-        window.addEventListener('load', initPyodide);
+        // JavaScript implementation will follow in next message
     </script>
 </body>
 </html>
