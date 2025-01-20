@@ -35,7 +35,7 @@
                 await pyodide.loadPackage(['numpy', 'pandas']);
                 
                 // Load our Python files
-                const response = await fetch('analysis.py');
+                const response = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/analysis.py');
                 const analysisCode = await response.text();
                 await pyodide.runPythonAsync(analysisCode);
                 
