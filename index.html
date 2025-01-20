@@ -47,10 +47,10 @@ dash.Dash._add_assets_resource = lambda self, *args, **kwargs: None
 dash.Dash.run_server = lambda self, *args, **kwargs: None
 `);
                 
-                const analysisResponse = await fetch('analysis.py');
+                const analysisResponse = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/analysis.py');
                 const analysisCode = await analysisResponse.text();
                 
-                const parserResponse = await fetch('html_parser.py');
+                const parserResponse = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/html_parser.py');
                 const parserCode = await parserResponse.text();
                 
                 await pyodide.runPythonAsync(`
