@@ -66,12 +66,8 @@
                     # Initialize the app
                     app = analysis.app
                     
-                    # Create the initial layout
-                    layout_html = app.layout.to_plotly_json()
-                    
-                    # Convert to HTML string
-                    from dash.html import ComponentMeta
-                    html_string = ComponentMeta.to_html(layout_html)
+                    # Get the HTML representation directly
+                    html_string = app.index()
                     
                     # Insert into content div
                     from js import document
@@ -81,6 +77,8 @@
                     # Initialize the callbacks
                     app._setup_dev_tools()
                     app._setup_server()
+                    app.callback_map = {}
+                    app._callback_list = []
                     
                     print("App initialization complete", file=sys.stderr)
                 `);
