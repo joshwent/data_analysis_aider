@@ -42,12 +42,20 @@
                 // Load html_parser.py first since analysis.py depends on it
                 const parserResponse = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/html_parser.py');
                 const parserCode = await parserResponse.text();
-                await pyodide.runPythonAsync(parserCode);
+                // Write the parser code to the virtual filesystem
+                pyodide.FS.writeFile('html_parser.py', parserCode);
                 
                 // Then load analysis.py
                 const analysisResponse = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/analysis.py');
                 const analysisCode = await analysisResponse.text();
-                await pyodide.runPythonAsync(analysisCode);
+                // Write the analysis code to the virtual filesystem
+                pyodide.FS.writeFile('analysis.py', analysisCode);
+                
+                // Now run the Python code
+                await pyodide.runPythonAsync(`
+                    import html_parser
+                    import analysis
+                `);
                 
                 // Hide loading, show content
                 document.getElementById('loading').style.display = 'none';
