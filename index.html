@@ -58,7 +58,7 @@ exec(html_parser_code, html_parser.__dict__)
 sys.modules['html_parser'] = html_parser
 
 # Import required packages
-from dash import Dash
+from dash import Dash, html
 import dash_bootstrap_components as dbc
 
 # Configure Dash for browser use
@@ -71,8 +71,9 @@ app = Dash(__name__,
 # Now execute the analysis code
 ${analysisCode}
 
-# Mount the app to the container
-app.run(debug=False, use_reloader=False)
+# Instead of running the server, render the layout directly
+container = document.getElementById('dash-container')
+container.innerHTML = app.index()
 `);
                 
                 console.log("Dashboard initialized successfully");
