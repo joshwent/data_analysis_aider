@@ -635,6 +635,9 @@ app.layout = dbc.Container([
     ])
 ], fluid=True, style={'maxWidth': '1400px'})
 
+if __name__ == '__main__':
+    app.run_server(debug=True, host='0.0.0.0', port=8000)
+
 # Callbacks for select/deselect all buttons
 @callback(
     Output('operator-checklist', 'value'),
