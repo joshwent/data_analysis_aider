@@ -63,23 +63,45 @@
                     import sys
                     sys.path.append('.')
                     import analysis
+                    from dash import html
                     print("Analysis module imported")
                     
                     app = analysis.app
                     
                     # Configure app for Pyodide environment
-                    app.config.update({
+                    app._config = {
                         'suppress_callback_exceptions': True,
                         'update_title': None,
-                    })
+                        'use_pages': False
+                    }
                     
-                    # Get the app layout and mount it
-                    layout_html = app.index()
+                    # Convert the layout to HTML string
+                    layout_components = app.layout() if callable(app.layout) else app.layout
+                    layout_html = layout_components.to_plotly_json()
+                    
+                    # Create a function to render components
+                    def render_component(component):
+                        if isinstance(component, dict):
+                            if component.get('type') == 'div':
+                                children = component.get('props', {}).get('children', [])
+                                if isinstance(children, list):
+                                    return '<div>' + ''.join(render_component(child) for child in children) + '</div>'
+                                else:
+                                    return '<div>' + render_component(children) + '</div>'
+                            elif component.get('type') == 'button':
+                                return f'<button>{component.get("props", {}).get("children", "")}</button>'
+                            # Add more component types as needed
+                        elif isinstance(component, str):
+                            return component
+                        return ''
+                    
+                    # Render the layout
+                    rendered_html = render_component(layout_html)
                     
                     # Insert the layout into the container
                     from js import document
                     container = document.getElementById('dash-container')
-                    container.innerHTML = layout_html
+                    container.innerHTML = rendered_html
                     
                     print("Dash app layout rendered")
                 `);
