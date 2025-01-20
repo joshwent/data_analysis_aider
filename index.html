@@ -4,10 +4,12 @@
     <title>Game Analytics</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/darkly/bootstrap.min.css">
     <link rel="stylesheet" href="static/css/styles.css">
-    <!-- Add JupyterLite dependencies -->
+    <!-- Add correct JupyterLite dependencies -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-    <link rel="stylesheet" href="https://jupyterlite.readthedocs.io/en/latest/_static/style.css">
-    <script src="https://jupyterlite.readthedocs.io/en/latest/_static/jupyterlite.js"></script>
+    <!-- Use official JupyterLite distribution -->
+    <script src="https://cdn.jsdelivr.net/npm/@jupyterlite/javascript-kernel-core/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jupyterlite/server/dist/index.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jupyterlite/theme-light/style/index.css">
 </head>
 <body>
     <div id="app">
@@ -19,19 +21,20 @@
     <script>
         async function initJupyterLite() {
             try {
-                // Wait for JupyterLite to be ready
-                await window.jupyterlite.ready;
-                console.log("JupyterLite ready");
+                // Initialize Pyodide first
+                const pyodide = await loadPyodide({
+                    indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
+                });
+                console.log("Pyodide loaded");
 
                 // Initialize JupyterLite
-                const jupyterLite = new window.jupyterlite.JupyterLite({
-                    container: document.getElementById('jupyter-lite-container')
-                });
-                await jupyterLite.init();
-                console.log("JupyterLite initialized");
+                const { JupyterLiteServer } = window.jupyterlite;
+                const server = new JupyterLiteServer({});
+                await server.ready;
+                console.log("JupyterLite server ready");
 
-                // Get the kernel
-                const kernel = await jupyterLite.createKernel('python');
+                // Create kernel
+                const kernel = await server.kernelspecs.startNew('python');
                 console.log("Kernel created");
 
                 // Execute the setup code
@@ -50,7 +53,7 @@
                     print("Dash app started")
                 `;
                 
-                await kernel.execute(setupCode);
+                await kernel.requestExecute({ code: setupCode }).done;
                 document.getElementById('loading').style.display = 'none';
                 
             } catch (error) {
@@ -62,18 +65,7 @@
             }
         }
 
-        // Wait for both DOM and JupyterLite to be ready
-        window.addEventListener('load', () => {
-            if (window.jupyterlite) {
-                initJupyterLite();
-            } else {
-                console.error("JupyterLite not found");
-                document.getElementById('loading').style.display = 'none';
-                const errorDiv = document.getElementById('error');
-                errorDiv.textContent = "Error: JupyterLite not found";
-                errorDiv.style.display = 'block';
-            }
-        });
+        window.addEventListener('load', initJupyterLite);
     </script>
 </body>
 </html>
