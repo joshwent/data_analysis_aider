@@ -25,10 +25,14 @@
                 // Install micropip first
                 await pyodide.loadPackage('micropip');
                 
-                // Use micropip to install plotly
+                // Use micropip to install required packages
                 await pyodide.runPythonAsync(`
                     import micropip
                     await micropip.install('plotly')
+                    await micropip.install('dash')
+                    await micropip.install('dash-core-components')
+                    await micropip.install('dash-html-components')
+                    await micropip.install('dash-bootstrap-components')
                 `);
                 
                 // Now load numpy and pandas
