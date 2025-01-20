@@ -111,6 +111,183 @@
         let globalData = null;
         let pyodide = null;
 
+        // Data filtering
+        function getFilteredData() {
+            if (!globalData) return [];
+            
+            const selectedOperators = [...document.querySelectorAll('#operator-checklist input:checked')]
+                .map(cb => cb.value);
+            const selectedGameTypes = [...document.querySelectorAll('#game-type-checklist input:checked')]
+                .map(cb => cb.value);
+            const selectedMaps = [...document.querySelectorAll('#map-checklist input:checked')]
+                .map(cb => cb.value);
+            
+            const startDate = new Date(document.getElementById('date-start').value);
+            const endDate = new Date(document.getElementById('date-end').value);
+            
+            return globalData.filter(d => {
+                const date = new Date(d['UTC Timestamp']);
+                return selectedOperators.includes(d.Operator) &&
+                       selectedGameTypes.includes(d['Game Type']) &&
+                       selectedMaps.includes(d.Map) &&
+                       date >= startDate &&
+                       date <= endDate;
+            });
+        }
+
+        // Stats calculation and display
+        function updateStats() {
+            const filteredData = getFilteredData();
+            if (!filteredData.length) {
+                document.getElementById('stats-container').innerHTML = 
+                    '<div class="alert alert-info">Select filters to display statistics</div>';
+                return;
+            }
+
+            // Calculate lifetime stats
+            const totalKills = globalData.reduce((sum, d) => sum + Number(d.Kills), 0);
+            const totalDeaths = globalData.reduce((sum, d) => sum + Number(d.Deaths), 0);
+            const lifetimeKD = (totalKills / totalDeaths).toFixed(2);
+            const totalWins = globalData.filter(d => d['Match Outcome'].toLowerCase().includes('win')).length;
+            const lifetimeWinRate = ((totalWins / globalData.length) * 100).toFixed(1);
+            const totalShots = globalData.reduce((sum, d) => sum + Number(d.Shots), 0);
+            const totalHits = globalData.reduce((sum, d) => sum + Number(d.Hits), 0);
+            const lifetimeAccuracy = ((totalHits / totalShots) * 100).toFixed(1);
+            
+            // Calculate filtered stats
+            const filteredKills = filteredData.reduce((sum, d) => sum + Number(d.Kills), 0);
+            const filteredDeaths = filteredData.reduce((sum, d) => sum + Number(d.Deaths), 0);
+            const filteredKD = (filteredKills / filteredDeaths).toFixed(2);
+            const filteredWins = filteredData.filter(d => d['Match Outcome'].toLowerCase().includes('win')).length;
+            const filteredWinRate = ((filteredWins / filteredData.length) * 100).toFixed(1);
+            const avgSkill = (filteredData.reduce((sum, d) => sum + Number(d.Skill), 0) / filteredData.length).toFixed(0);
+            const bestStreak = Math.max(...filteredData.map(d => Number(d['Longest Streak'])));
+
+            // Create stats cards HTML
+            const statsHtml = `
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <div class="card bg-dark">
+                            <div class="card-body">
+                                <h3 class="text-primary text-center mb-4">Lifetime Statistics</h3>
+                                <div class="row text-center">
+                                    <div class="col-3">
+                                        <div class="mb-2"><strong>Total K/D</strong></div>
+                                        <div class="h4">${lifetimeKD}</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="mb-2"><strong>Overall Win Rate</strong></div>
+                                        <div class="h4">${lifetimeWinRate}%</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="mb-2"><strong>Lifetime Accuracy</strong></div>
+                                        <div class="h4">${lifetimeAccuracy}%</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="mb-2"><strong>Total Matches</strong></div>
+                                        <div class="h4">${globalData.length}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card bg-dark">
+                            <div class="card-body">
+                                <h3 class="text-primary text-center mb-4">Filtered Performance</h3>
+                                <div class="row text-center">
+                                    <div class="col-3">
+                                        <div class="mb-2"><strong>Avg Skill Rating</strong></div>
+                                        <div class="h4">${avgSkill}</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="mb-2"><strong>Filtered K/D</strong></div>
+                                        <div class="h4">${filteredKD}</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="mb-2"><strong>Win Rate</strong></div>
+                                        <div class="h4">${filteredWinRate}%</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="mb-2"><strong>Best Streak</strong></div>
+                                        <div class="h4">${bestStreak}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('stats-container').innerHTML = statsHtml;
+        }
+
+        // Plot creation and update
+        function updatePlots() {
+            const filteredData = getFilteredData();
+            if (!filteredData.length) {
+                document.getElementById('plots-container').innerHTML = 
+                    '<div class="alert alert-info">Select filters to display charts</div>';
+                return;
+            }
+
+            const plotsContainer = document.getElementById('plots-container');
+            plotsContainer.innerHTML = ''; // Clear existing plots
+
+            // Create plot containers
+            const plotIds = [
+                'skill-plot', 'kd-by-hour-plot', 'accuracy-hist', 'kd-hist',
+                'skill-hist', 'metrics-plot', 'map-performance', 'headshot-plot',
+                'damage-plot', 'outcome-plot'
+            ];
+
+            plotIds.forEach(id => {
+                const div = document.createElement('div');
+                div.id = id;
+                div.className = 'plot-container';
+                plotsContainer.appendChild(div);
+            });
+
+            // Skill progression over time
+            const skillData = {
+                x: filteredData.map(d => d['UTC Timestamp']),
+                y: filteredData.map(d => Number(d.Skill)),
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#5B9AFF', width: 2 }
+            };
+            Plotly.newPlot('skill-plot', [skillData], {
+                title: 'Skill Progression Over Time',
+                template: 'plotly_dark',
+                height: 300
+            });
+
+            // KD ratio by hour
+            const hourlyData = {};
+            filteredData.forEach(d => {
+                const hour = new Date(d['UTC Timestamp']).getHours();
+                if (!hourlyData[hour]) hourlyData[hour] = { kills: 0, deaths: 0 };
+                hourlyData[hour].kills += Number(d.Kills);
+                hourlyData[hour].deaths += Number(d.Deaths);
+            });
+
+            const hourlyKD = Object.entries(hourlyData).map(([hour, data]) => ({
+                hour: Number(hour),
+                kd: data.deaths > 0 ? data.kills / data.deaths : data.kills
+            })).sort((a, b) => a.hour - b.hour);
+
+            Plotly.newPlot('kd-by-hour-plot', [{
+                x: hourlyKD.map(d => `${d.hour}:00`),
+                y: hourlyKD.map(d => d.kd),
+                type: 'bar',
+                marker: { color: '#00ff00' }
+            }], {
+                title: 'Average K/D Ratio by Hour',
+                template: 'plotly_dark',
+                height: 300
+            });
+        }
+
         // Initialize Pyodide and load dependencies
         async function initPyodide() {
             try {
@@ -268,6 +445,22 @@
             
             // Repeat for game types and maps...
             // Add similar event listeners for other select/deselect buttons
+            
+            // Add change listeners for all filters
+            ['operator-checklist', 'game-type-checklist', 'map-checklist'].forEach(id => {
+                document.getElementById(id).addEventListener('change', () => {
+                    updateStats();
+                    updatePlots();
+                });
+            });
+
+            // Date range listeners
+            ['date-start', 'date-end'].forEach(id => {
+                document.getElementById(id).addEventListener('change', () => {
+                    updateStats();
+                    updatePlots();
+                });
+            });
         });
     </script>
 </body>
