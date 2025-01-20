@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load example data button
     document.getElementById('load-example-data').addEventListener('click', async () => {
         try {
-            const response = await fetch('data.html');
+            const response = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis_aider/refs/heads/non-dash2/data.html');
             const content = await response.text();
             globalData = parseHtmlFile(content);
             console.log("Example data loaded:", globalData.length, "records");
