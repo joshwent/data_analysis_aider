@@ -4,23 +4,30 @@
     <title>Game Analytics</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/darkly/bootstrap.min.css">
     <link rel="stylesheet" href="static/css/styles.css">
+    <!-- Add RetroLite instead of JupyterLite -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-    <script src="https://jupyterlite.readthedocs.io/en/latest/_static/jupyterlite.js"></script>
-    <link rel="stylesheet" href="https://jupyterlite.readthedocs.io/en/latest/_static/style.css">
+    <script src="https://retro.jupyterlite.org/static/retro.js"></script>
+    <link href="https://retro.jupyterlite.org/static/retro.css" rel="stylesheet">
 </head>
 <body>
     <div id="app">
         <div id="loading">Loading Python environment...</div>
         <div id="error" style="display:none"></div>
-        <div id="jupyter-lite-container"></div>
+        <div id="retro-container" style="height: 100vh;"></div>
     </div>
 
     <script>
         async function initJupyterLite() {
             try {
-                // Initialize JupyterLite kernel
-                const kernel = await window.jupyterlite.createKernel('python');
-                console.log("JupyterLite kernel created");
+                // Initialize RetroLite
+                const lite = await RetroLite.create({
+                    container: 'retro-container'
+                });
+                console.log("RetroLite initialized");
+
+                // Get the kernel
+                const kernel = await lite.createKernel('python');
+                console.log("Kernel created");
 
                 // Execute the setup code
                 const setupCode = `
@@ -34,7 +41,7 @@
                     
                     # Create and display the app
                     app = analysis.app
-                    app.run_server(mode='jupyterlab', port=8866)
+                    app.run_server(mode='inline', port=8866)
                     print("Dash app started")
                 `;
                 
