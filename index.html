@@ -78,8 +78,27 @@ dashboard_html = app.index()
                 // Get the HTML from Python and insert it into the container
                 const container = document.getElementById('dash-container');
                 container.innerHTML = pyodide.globals.get('dashboard_html');
+
+                // Initialize the callbacks
+                await pyodide.runPythonAsync(`
+# Initialize callbacks
+for callback in app.callback_map.values():
+    callback.allow_duplicate=True
+    
+# Register the callbacks with the app
+app._setup_server()
+app._activate_callbacks()
+
+# Update the layout
+app._update_layout()
+`);
+
+                // Trigger initial update
+                const dashContainer = document.getElementById('dash-container');
+                const event = new Event('DOMContentLoaded');
+                dashContainer.dispatchEvent(event);
                 
-                console.log("Dashboard initialized successfully");
+                console.log("Dashboard fully initialized");
                 
             } catch (error) {
                 console.error("Error initializing dashboard:", error);
