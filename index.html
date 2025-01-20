@@ -12,7 +12,7 @@
         <div id="loading" class="loading">Loading Python environment...</div>
         <div id="error" class="error" style="display:none"></div>
         <div id="content" style="display:none">
-            <!-- Content will be dynamically populated -->
+            <!-- Dash app will be mounted here -->
         </div>
     </div>
 
@@ -51,10 +51,20 @@
                 // Write the analysis code to the virtual filesystem
                 pyodide.FS.writeFile('analysis.py', analysisCode);
                 
-                // Now run the Python code
+                // Now run the Python code and mount the Dash app
                 await pyodide.runPythonAsync(`
                     import html_parser
                     import analysis
+                    # Mount the Dash app to the content div
+                    analysis.app.run(
+                        host="0.0.0.0",
+                        port=8050,
+                        mode="inline",
+                        debug=False,
+                        use_reloader=False,
+                        dev_tools_hot_reload=False,
+                        mount_target="content"
+                    )
                 `);
                 
                 // Hide loading, show content
