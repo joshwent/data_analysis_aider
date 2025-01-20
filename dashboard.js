@@ -1,0 +1,526 @@
+// Global state
+let globalData = null;
+let pyodide = null;
+
+// Data filtering
+function getFilteredData() {
+    if (!globalData) return [];
+    
+    const selectedOperators = [...document.querySelectorAll('#operator-checklist input:checked')]
+        .map(cb => cb.value);
+    const selectedGameTypes = [...document.querySelectorAll('#game-type-checklist input:checked')]
+        .map(cb => cb.value);
+    const selectedMaps = [...document.querySelectorAll('#map-checklist input:checked')]
+        .map(cb => cb.value);
+    
+    const startDate = new Date(document.getElementById('date-start').value);
+    const endDate = new Date(document.getElementById('date-end').value);
+    
+    return globalData.filter(d => {
+        const date = new Date(d['UTC Timestamp']);
+        return selectedOperators.includes(d.Operator) &&
+               selectedGameTypes.includes(d['Game Type']) &&
+               selectedMaps.includes(d.Map) &&
+               date >= startDate &&
+               date <= endDate;
+    });
+}
+
+// Stats calculation and display
+function updateStats() {
+    const filteredData = getFilteredData();
+    if (!filteredData.length) {
+        document.getElementById('stats-container').innerHTML = 
+            '<div class="alert alert-info">Select filters to display statistics</div>';
+        return;
+    }
+
+    // Calculate lifetime stats
+    const totalKills = globalData.reduce((sum, d) => sum + Number(d.Kills), 0);
+    const totalDeaths = globalData.reduce((sum, d) => sum + Number(d.Deaths), 0);
+    const lifetimeKD = (totalKills / totalDeaths).toFixed(2);
+    const totalWins = globalData.filter(d => d['Match Outcome'].toLowerCase().includes('win')).length;
+    const lifetimeWinRate = ((totalWins / globalData.length) * 100).toFixed(1);
+    const totalShots = globalData.reduce((sum, d) => sum + Number(d.Shots), 0);
+    const totalHits = globalData.reduce((sum, d) => sum + Number(d.Hits), 0);
+    const lifetimeAccuracy = ((totalHits / totalShots) * 100).toFixed(1);
+    
+    // Calculate filtered stats
+    const filteredKills = filteredData.reduce((sum, d) => sum + Number(d.Kills), 0);
+    const filteredDeaths = filteredData.reduce((sum, d) => sum + Number(d.Deaths), 0);
+    const filteredKD = (filteredKills / filteredDeaths).toFixed(2);
+    const filteredWins = filteredData.filter(d => d['Match Outcome'].toLowerCase().includes('win')).length;
+    const filteredWinRate = ((filteredWins / filteredData.length) * 100).toFixed(1);
+    const avgSkill = (filteredData.reduce((sum, d) => sum + Number(d.Skill), 0) / filteredData.length).toFixed(0);
+    const bestStreak = Math.max(...filteredData.map(d => Number(d['Longest Streak'])));
+
+    // Create stats cards HTML
+    const statsHtml = `
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card bg-dark">
+                    <div class="card-body">
+                        <h3 class="text-primary text-center mb-4">Lifetime Statistics</h3>
+                        <div class="row text-center">
+                            <div class="col-3">
+                                <div class="mb-2"><strong>Total K/D</strong></div>
+                                <div class="h4">${lifetimeKD}</div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-2"><strong>Overall Win Rate</strong></div>
+                                <div class="h4">${lifetimeWinRate}%</div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-2"><strong>Lifetime Accuracy</strong></div>
+                                <div class="h4">${lifetimeAccuracy}%</div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-2"><strong>Total Matches</strong></div>
+                                <div class="h4">${globalData.length}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card bg-dark">
+                    <div class="card-body">
+                        <h3 class="text-primary text-center mb-4">Filtered Performance</h3>
+                        <div class="row text-center">
+                            <div class="col-3">
+                                <div class="mb-2"><strong>Avg Skill Rating</strong></div>
+                                <div class="h4">${avgSkill}</div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-2"><strong>Filtered K/D</strong></div>
+                                <div class="h4">${filteredKD}</div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-2"><strong>Win Rate</strong></div>
+                                <div class="h4">${filteredWinRate}%</div>
+                            </div>
+                            <div class="col-3">
+                                <div class="mb-2"><strong>Best Streak</strong></div>
+                                <div class="h4">${bestStreak}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('stats-container').innerHTML = statsHtml;
+}
+
+// Plot creation and update
+function updatePlots() {
+    const filteredData = getFilteredData();
+    if (!filteredData.length) {
+        document.getElementById('plots-container').innerHTML = 
+            '<div class="alert alert-info">Select filters to display charts</div>';
+        return;
+    }
+
+    const plotsContainer = document.getElementById('plots-container');
+    plotsContainer.innerHTML = ''; // Clear existing plots
+
+    // Create plot containers
+    const plotIds = [
+        'skill-plot', 'kd-by-hour-plot', 'accuracy-hist', 'kd-hist',
+        'skill-hist', 'metrics-plot', 'map-performance', 'headshot-plot',
+        'damage-plot', 'outcome-plot'
+    ];
+
+    plotIds.forEach(id => {
+        const div = document.createElement('div');
+        div.id = id;
+        div.className = 'plot-container';
+        plotsContainer.appendChild(div);
+    });
+
+    // Skill progression over time
+    const skillData = {
+        x: filteredData.map(d => d['UTC Timestamp']),
+        y: filteredData.map(d => Number(d.Skill)),
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: '#5B9AFF', width: 2 }
+    };
+    Plotly.newPlot('skill-plot', [skillData], {
+        title: 'Skill Progression Over Time',
+        template: 'plotly_dark',
+        height: 300
+    });
+
+    // KD ratio by hour
+    const hourlyData = {};
+    filteredData.forEach(d => {
+        const hour = new Date(d['UTC Timestamp']).getHours();
+        if (!hourlyData[hour]) hourlyData[hour] = { kills: 0, deaths: 0 };
+        hourlyData[hour].kills += Number(d.Kills);
+        hourlyData[hour].deaths += Number(d.Deaths);
+    });
+
+    const hourlyKD = Object.entries(hourlyData).map(([hour, data]) => ({
+        hour: Number(hour),
+        kd: data.deaths > 0 ? data.kills / data.deaths : data.kills
+    })).sort((a, b) => a.hour - b.hour);
+
+    Plotly.newPlot('kd-by-hour-plot', [{
+        x: hourlyKD.map(d => `${d.hour}:00`),
+        y: hourlyKD.map(d => d.kd),
+        type: 'bar',
+        marker: { color: '#00ff00' }
+    }], {
+        title: 'Average K/D Ratio by Hour',
+        template: 'plotly_dark',
+        height: 300
+    });
+
+    // Accuracy distribution
+    const accuracyData = filteredData.map(d => Number(d.Hits) / Number(d.Shots) * 100);
+    Plotly.newPlot('accuracy-hist', [{
+        x: accuracyData,
+        type: 'histogram',
+        nbinsx: 30,
+        marker: { color: 'orange' }
+    }], {
+        title: 'Accuracy Distribution',
+        xaxis: { title: 'Accuracy %' },
+        yaxis: { title: 'Number of Matches' },
+        template: 'plotly_dark',
+        height: 300
+    });
+
+    // K/D distribution
+    const kdData = filteredData.map(d => Number(d.Kills) / Math.max(1, Number(d.Deaths)));
+    Plotly.newPlot('kd-hist', [{
+        x: kdData,
+        type: 'histogram',
+        nbinsx: 30,
+        marker: { color: 'red' }
+    }], {
+        title: 'K/D Ratio Distribution',
+        xaxis: { title: 'K/D Ratio' },
+        yaxis: { title: 'Number of Matches' },
+        template: 'plotly_dark',
+        height: 300
+    });
+
+    // Skill distribution
+    Plotly.newPlot('skill-hist', [{
+        x: filteredData.map(d => Number(d.Skill)),
+        type: 'histogram',
+        nbinsx: 30,
+        marker: { color: 'cyan' }
+    }], {
+        title: 'Skill Distribution',
+        xaxis: { title: 'Skill Rating' },
+        yaxis: { title: 'Number of Matches' },
+        template: 'plotly_dark',
+        height: 300
+    });
+
+    // Performance metrics over time
+    const metricsData = [{
+        x: filteredData.map(d => d['UTC Timestamp']),
+        y: kdData,
+        name: 'K/D Ratio',
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: '#5B9AFF' }
+    }, {
+        x: filteredData.map(d => d['UTC Timestamp']),
+        y: accuracyData,
+        name: 'Accuracy',
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: '#00ff00' }
+    }];
+    Plotly.newPlot('metrics-plot', metricsData, {
+        title: 'Performance Metrics Over Time',
+        template: 'plotly_dark',
+        height: 300
+    });
+
+    // Map performance
+    const mapStats = {};
+    filteredData.forEach(d => {
+        if (!mapStats[d.Map]) mapStats[d.Map] = { kills: 0, deaths: 0 };
+        mapStats[d.Map].kills += Number(d.Kills);
+        mapStats[d.Map].deaths += Number(d.Deaths);
+    });
+
+    const mapKD = Object.entries(mapStats).map(([map, data]) => ({
+        map,
+        kd: data.kills / Math.max(1, data.deaths)
+    })).sort((a, b) => b.kd - a.kd);
+
+    Plotly.newPlot('map-performance', [{
+        x: mapKD.map(d => d.map),
+        y: mapKD.map(d => d.kd),
+        type: 'bar',
+        marker: { color: 'purple' }
+    }], {
+        title: 'K/D Ratio by Map',
+        xaxis: { tickangle: 45 },
+        template: 'plotly_dark',
+        height: 300
+    });
+
+    // Headshot ratio over time
+    const headshotData = {
+        x: filteredData.map(d => d['UTC Timestamp']),
+        y: filteredData.map(d => Number(d.Headshots) / Math.max(1, Number(d.Kills))),
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: '#ff4d4d', width: 2 }
+    };
+    Plotly.newPlot('headshot-plot', [headshotData], {
+        title: 'Headshot Ratio Over Time',
+        yaxis: { title: 'Headshot Ratio' },
+        template: 'plotly_dark',
+        height: 300
+    });
+
+    // Damage efficiency
+    Plotly.newPlot('damage-plot', [{
+        x: filteredData.map(d => Number(d['Damage Taken'])),
+        y: filteredData.map(d => Number(d['Damage Done'])),
+        mode: 'markers',
+        type: 'scatter',
+        marker: {
+            color: filteredData.map(d => d['Match Outcome'].toLowerCase().includes('win') ? '#00ff00' : '#ff0000'),
+            size: 8
+        }
+    }], {
+        title: 'Damage Efficiency (Done vs Taken)',
+        xaxis: { title: 'Damage Taken' },
+        yaxis: { title: 'Damage Done' },
+        template: 'plotly_dark',
+        height: 300
+    });
+
+    // Match outcomes pie chart
+    const outcomes = {};
+    filteredData.forEach(d => {
+        const outcome = d['Match Outcome'];
+        outcomes[outcome] = (outcomes[outcome] || 0) + 1;
+    });
+
+    Plotly.newPlot('outcome-plot', [{
+        values: Object.values(outcomes),
+        labels: Object.keys(outcomes),
+        type: 'pie',
+        marker: {
+            colors: ['#00ff00', '#ff0000', '#ffff00']
+        }
+    }], {
+        title: 'Match Outcomes Distribution',
+        template: 'plotly_dark',
+        height: 300
+    });
+}
+
+// Utility functions
+function showError(message) {
+    const statusDiv = document.getElementById('upload-status');
+    statusDiv.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+}
+
+function showSuccess(message) {
+    const statusDiv = document.getElementById('upload-status');
+    statusDiv.innerHTML = `<div class="alert alert-success">${message}</div>`;
+}
+
+// File handling
+async function handleFileUpload(file) {
+    try {
+        const content = await file.text();
+        globalData = parseHtmlFile(content);
+        console.log("Data loaded:", globalData.length, "records");
+        
+        updateFilters();
+        updateStats();
+        updatePlots();
+        showSuccess("Data loaded successfully");
+        
+    } catch (error) {
+        console.error("Error processing file:", error);
+        showError("Error processing file: " + error.message);
+    }
+}
+
+// Filter management
+function updateFilters() {
+    if (!globalData) return;
+    
+    // Get unique values
+    const operators = [...new Set(globalData.map(d => d.Operator))].sort();
+    const gameTypes = [...new Set(globalData.map(d => d['Game Type']))].sort();
+    const maps = [...new Set(globalData.map(d => d.Map))].sort();
+    
+    // Update operator checklist
+    const operatorList = document.getElementById('operator-checklist');
+    operatorList.innerHTML = operators.map(op => `
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="${op}" id="op-${op}" checked>
+            <label class="form-check-label" for="op-${op}">${op}</label>
+        </div>
+    `).join('');
+    
+    // Update game type checklist
+    const gameTypeList = document.getElementById('game-type-checklist');
+    gameTypeList.innerHTML = gameTypes.map(type => `
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="${type}" id="gt-${type}" checked>
+            <label class="form-check-label" for="gt-${type}">${type}</label>
+        </div>
+    `).join('');
+    
+    // Update maps checklist
+    const mapList = document.getElementById('map-checklist');
+    mapList.innerHTML = maps.map(map => `
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="${map}" id="map-${map}" checked>
+            <label class="form-check-label" for="map-${map}">${map}</label>
+        </div>
+    `).join('');
+    
+    // Update date range
+    const dates = globalData.map(d => new Date(d['UTC Timestamp']));
+    const minDate = new Date(Math.min(...dates));
+    const maxDate = new Date(Math.max(...dates));
+    
+    document.getElementById('date-start').value = minDate.toISOString().split('T')[0];
+    document.getElementById('date-end').value = maxDate.toISOString().split('T')[0];
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', async () => {
+    // No initialization needed
+    
+    // Load example data button
+    document.getElementById('load-example-data').addEventListener('click', async () => {
+        try {
+            // Static CSV example data
+            const csvData = `UTC Timestamp,Account Type,Device Type,Game Type,Match ID,Match Start Timestamp,Match End Timestamp,Map,Team,Match Outcome,Operator,Operator Skin,Execution,Skill,Score,Shots,Hits,Assists,Longest Streak,Kills,Deaths,Headshots,Executions,Suicides,Damage Done,Damage Taken,Armor Collected,Armor Equipped,Armor Destroyed,Ground Vehicles Used,Air Vehicles Used,Percentage Of Time Moving,Total XP,Score XP,Challenge XP,Match XP,Medal XP,Bonus XP,Misc XP,Accolade XP,Weapon XP,Operator XP,Clan XP,Battle Pass XP,Rank at Start,Rank at End,XP at Start,XP at End,Score at Start,Score at End,Prestige at Start,Prestige at End,Lifetime Wall Bangs,Lifetime Games Played,Lifetime Time Played,Lifetime Wins,Lifetime Losses,Lifetime Kills,Lifetime Deaths,Lifetime Hits,Lifetime Misses,Lifetime Near Misses
+2025-01-09 4:19:58,Steam,pc,Domination,133114697144299717,2025-01-09 4:19:58,2025-01-09 4:22:37,Stakeout,axis,loss,GREY,Frayed,Hook & Slash,76,0,0,0,0,0,0,9,0,0,0,0,900,0,0,0,0,0,30.53%,0,0,0,0,0,0,0,0,0,0,0,0,0,55,0,1153000,0,1205400,0,2,263,306,144626,162,134,6717,6665,30803,128805,105122
+2025-01-09 4:12:06,Steam,pc,Team Deathmatch,905330633309169474,2025-01-09 4:12:06,2025-01-09 4:18:23,Stakeout,allies,win,WOODS,Classic Woods,Hook & Slash,75,4385,700,154,17,4,23,27,8,0,0,3561,3380,0,0,0,0,0,99.67%,5240,5240,0,0,0,0,0,0,2814,5240,5240,5240,0,55,0,1158240,0,1205400,0,2,263,305,144488,162,133,6717,6656,30803,128805,105122
+2025-01-09 4:04:26,Steam,pc,Kill Order,16859517726185211588,2025-01-09 4:04:26,2025-01-09 4:10:23,Stakeout,axis,win,GREY,Frayed,Hook & Slash,87,3825,669,124,16,3,15,18,0,0,0,3148,2826,0,0,3,0,0,96.01%,4960,4960,0,0,0,0,0,0,2325,4960,4960,4960,55,55,1153000,1157960,1201015,1201015,2,2,263,304,144174,161,133,6694,6629,30648,128261,104648`;
+
+            // Parse CSV to array of objects
+            const lines = csvData.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            
+            globalData = lines.slice(1)
+                .filter(line => line.trim())
+                .map(line => {
+                    const values = line.split(',');
+                    const row = {};
+                    headers.forEach((header, i) => {
+                        row[header] = values[i] ? values[i].trim() : '';
+                    });
+                    return row;
+                });
+
+            console.log("Example data loaded:", globalData.length, "records");
+            
+            updateFilters();
+            updateStats();
+            updatePlots();
+            showSuccess("Example data loaded successfully");
+            
+        } catch (error) {
+            console.error("Error loading example data:", error);
+            showError("Error loading example data: " + error.message);
+        }
+    });
+    
+    // File upload handling
+    const fileInput = document.getElementById('file-input');
+    const uploadZone = document.getElementById('upload-zone');
+    
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) handleFileUpload(file);
+    });
+    
+    uploadZone.addEventListener('click', () => fileInput.click());
+    
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('drag-over');
+    });
+    
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('drag-over');
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) handleFileUpload(file);
+    });
+    
+    // Select/Deselect all buttons
+    document.getElementById('operator-select-all').addEventListener('click', () => {
+        document.querySelectorAll('#operator-checklist input[type="checkbox"]')
+            .forEach(cb => cb.checked = true);
+        updateStats();
+        updatePlots();
+    });
+    
+    document.getElementById('operator-deselect-all').addEventListener('click', () => {
+        document.querySelectorAll('#operator-checklist input[type="checkbox"]')
+            .forEach(cb => cb.checked = false);
+        updateStats();
+        updatePlots();
+    });
+    
+    document.getElementById('game-type-select-all').addEventListener('click', () => {
+        document.querySelectorAll('#game-type-checklist input[type="checkbox"]')
+            .forEach(cb => cb.checked = true);
+        updateStats();
+        updatePlots();
+    });
+    
+    document.getElementById('game-type-deselect-all').addEventListener('click', () => {
+        document.querySelectorAll('#game-type-checklist input[type="checkbox"]')
+            .forEach(cb => cb.checked = false);
+        updateStats();
+        updatePlots();
+    });
+
+    document.getElementById('map-select-all').addEventListener('click', () => {
+        document.querySelectorAll('#map-checklist input[type="checkbox"]')
+            .forEach(cb => cb.checked = true);
+        updateStats();
+        updatePlots();
+    });
+    
+    document.getElementById('map-deselect-all').addEventListener('click', () => {
+        document.querySelectorAll('#map-checklist input[type="checkbox"]')
+            .forEach(cb => cb.checked = false);
+        updateStats();
+        updatePlots();
+    });
+    
+    // Add change listeners for all filters
+    ['operator-checklist', 'game-type-checklist', 'map-checklist'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+            updateStats();
+            updatePlots();
+        });
+    });
+
+    // Date range listeners
+    ['date-start', 'date-end'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+            updateStats();
+            updatePlots();
+        });
+    });
+});
