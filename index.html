@@ -21,9 +21,11 @@
             try {
                 // Initialize Pyodide
                 let pyodide = await loadPyodide();
+                console.log("Pyodide initialized");
                 
                 // Install micropip first
                 await pyodide.loadPackage('micropip');
+                console.log("Micropip installed");
                 
                 // Use micropip to install required packages
                 await pyodide.runPythonAsync(`
@@ -35,49 +37,62 @@
                     await micropip.install('dash-bootstrap-components')
                     await micropip.install('beautifulsoup4')
                 `);
+                console.log("Required packages installed");
                 
                 // Now load numpy and pandas
                 await pyodide.loadPackage(['numpy', 'pandas']);
+                console.log("Numpy and Pandas loaded");
                 
                 // Load html_parser.py first since analysis.py depends on it
                 const parserResponse = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/html_parser.py');
                 const parserCode = await parserResponse.text();
-                // Write the parser code to the virtual filesystem
                 pyodide.FS.writeFile('html_parser.py', parserCode);
+                console.log("HTML parser loaded");
                 
                 // Then load analysis.py
                 const analysisResponse = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/analysis.py');
                 const analysisCode = await analysisResponse.text();
-                // Write the analysis code to the virtual filesystem
                 pyodide.FS.writeFile('analysis.py', analysisCode);
+                console.log("Analysis code loaded");
                 
                 // Now run the Python code and display the Dash app
                 await pyodide.runPythonAsync(`
+                    import sys
                     import html_parser
                     import analysis
                     from dash import no_update
                     import dash.exceptions
                     
-                    # Get the HTML representation of the app layout
-                    app_html = analysis.app.index()
+                    # Initialize the app
+                    app = analysis.app
                     
-                    # Insert the app HTML into the content div
+                    # Create the initial layout
+                    layout_html = app.layout.to_plotly_json()
+                    
+                    # Convert to HTML string
+                    from dash.html import ComponentMeta
+                    html_string = ComponentMeta.to_html(layout_html)
+                    
+                    # Insert into content div
                     from js import document
                     content_div = document.getElementById('content')
-                    content_div.innerHTML = app_html
+                    content_div.innerHTML = html_string
                     
                     # Initialize the callbacks
-                    analysis.app._setup_dev_tools()
-                    analysis.app._setup_server()
-                    analysis.app.callback_map = {}
-                    analysis.app._callback_list = []
+                    app._setup_dev_tools()
+                    app._setup_server()
+                    
+                    print("App initialization complete", file=sys.stderr)
                 `);
+                console.log("Python code executed");
                 
                 // Hide loading, show content
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('content').style.display = 'block';
+                console.log("Display updated");
                 
             } catch (error) {
+                console.error("Initialization error:", error);
                 document.getElementById('loading').style.display = 'none';
                 const errorDiv = document.getElementById('error');
                 errorDiv.textContent = `Error initializing: ${error}`;
