@@ -511,6 +511,43 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // No initialization needed
             
+            // Load example data button
+            document.getElementById('load-example-data').addEventListener('click', async () => {
+                try {
+                    const response = await fetch('data2.csv');
+                    if (!response.ok) {
+                        throw new Error('Failed to load example data');
+                    }
+                    const csvText = await response.text();
+                    
+                    // Convert CSV to array of objects
+                    const lines = csvText.split('\n');
+                    const headers = lines[0].split(',').map(h => h.trim());
+                    
+                    globalData = lines.slice(1)
+                        .filter(line => line.trim())  // Skip empty lines
+                        .map(line => {
+                            const values = line.split(',');
+                            const row = {};
+                            headers.forEach((header, i) => {
+                                row[header] = values[i] ? values[i].trim() : '';
+                            });
+                            return row;
+                        });
+
+                    console.log("Example data loaded:", globalData.length, "records");
+                    
+                    updateFilters();
+                    updateStats();
+                    updatePlots();
+                    showSuccess("Example data loaded successfully");
+                    
+                } catch (error) {
+                    console.error("Error loading example data:", error);
+                    showError("Error loading example data: " + error.message);
+                }
+            });
+            
             // File upload handling
             const fileInput = document.getElementById('file-input');
             const uploadZone = document.getElementById('upload-zone');
