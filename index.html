@@ -22,8 +22,17 @@
                 // Initialize Pyodide
                 let pyodide = await loadPyodide();
                 
-                // Install required packages
-                await pyodide.loadPackage(['numpy', 'pandas', 'plotly']);
+                // Install micropip first
+                await pyodide.loadPackage('micropip');
+                
+                // Use micropip to install plotly
+                await pyodide.runPythonAsync(`
+                    import micropip
+                    await micropip.install('plotly')
+                `);
+                
+                // Now load numpy and pandas
+                await pyodide.loadPackage(['numpy', 'pandas']);
                 
                 // Load our Python files
                 const response = await fetch('analysis.py');
