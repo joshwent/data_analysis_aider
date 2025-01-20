@@ -85,8 +85,9 @@ dashboard_html = app.index()
 app._setup_server()
 
 # Register and activate callbacks
-for callback in app._callback_list:
-    callback.allow_duplicate = True
+for callback_id, callback_info in app.callback_map.items():
+    callback_info['callback'].allow_duplicate = True
+    
 app._activate_callbacks()
 
 # Force layout update
