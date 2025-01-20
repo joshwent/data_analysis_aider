@@ -4,10 +4,7 @@
     <title>Game Analytics</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/darkly/bootstrap.min.css">
     <link rel="stylesheet" href="static/css/styles.css">
-    <!-- Use JupyterLite core -->
     <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@jupyterlite/core@0.1.1/dist/index.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@jupyterlite/core@0.1.1/dist/style.css" rel="stylesheet">
 </head>
 <body>
     <div id="app">
@@ -17,9 +14,21 @@
     </div>
 
     <script>
+        async function loadPythonFile(pyodide, url, filename) {
+            try {
+                const response = await fetch(url);
+                const content = await response.text();
+                pyodide.FS.writeFile(filename, content);
+                console.log(`Loaded ${filename} from ${url}`);
+            } catch (error) {
+                console.error(`Error loading ${filename} from ${url}:`, error);
+                throw error;
+            }
+        }
+
         async function initPyodide() {
             try {
-                // Initialize Pyodide directly
+                // Initialize Pyodide
                 const pyodide = await loadPyodide({
                     indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
                 });
@@ -32,12 +41,27 @@
                 // Install Python packages
                 await pyodide.runPythonAsync(`
                     import micropip
-                    await micropip.install(['dash', 'plotly', 'pandas', 'dash-bootstrap-components'])
+                    await micropip.install(['dash', 'plotly', 'pandas', 'dash-bootstrap-components', 'beautifulsoup4'])
                     print("Required packages installed")
                 `);
 
+                // Load Python files from GitHub
+                await loadPythonFile(
+                    pyodide, 
+                    'https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/html_parser.py',
+                    'html_parser.py'
+                );
+                await loadPythonFile(
+                    pyodide, 
+                    'https://raw.githubusercontent.com/joshwent/data_analysis/refs/heads/main/analysis.py',
+                    'analysis.py'
+                );
+                console.log("Python files loaded from GitHub");
+
                 // Import and run analysis
                 await pyodide.runPythonAsync(`
+                    import sys
+                    sys.path.append('.')
                     import analysis
                     print("Analysis module imported")
                     
