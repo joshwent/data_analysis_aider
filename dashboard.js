@@ -47,7 +47,7 @@ function createPlotLayout(title, xaxis = {}, yaxis = {}, additionalConfig = {}) 
 
 // Data filtering
 function getFilteredData(game) {
-    const data = globalData[game];
+    const data = game === 'bo6' ? globalData.bo6 : globalData.mw3;
     if (!data) return [];
     
     const selectedOperators = [...document.querySelectorAll(`#operator-checklist-${game} input:checked`)]
@@ -60,7 +60,7 @@ function getFilteredData(game) {
     const startDate = new Date(document.getElementById(`date-start-${game}`).value);
     const endDate = new Date(document.getElementById(`date-end-${game}`).value);
     
-    return globalData.filter(d => {
+    return data.filter(d => {
         const date = new Date(d['UTC Timestamp']);
         return selectedOperators.includes(d.Operator) &&
                selectedGameTypes.includes(d['Game Type']) &&
