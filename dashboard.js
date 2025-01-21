@@ -46,21 +46,19 @@ function createPlotLayout(title, xaxis = {}, yaxis = {}, additionalConfig = {}) 
 }
 
 // Data filtering
-function getFilteredData() {
-    const activeTab = document.querySelector('.tab-pane.active').id;
-    const data = activeTab === 'bo6' ? globalData.bo6 : globalData.mw3;
-    
+function getFilteredData(game) {
+    const data = globalData[game];
     if (!data) return [];
     
-    const selectedOperators = [...document.querySelectorAll('#operator-checklist input:checked')]
+    const selectedOperators = [...document.querySelectorAll(`#operator-checklist-${game} input:checked`)]
         .map(cb => cb.value);
-    const selectedGameTypes = [...document.querySelectorAll('#game-type-checklist input:checked')]
+    const selectedGameTypes = [...document.querySelectorAll(`#game-type-checklist-${game} input:checked`)]
         .map(cb => cb.value);
-    const selectedMaps = [...document.querySelectorAll('#map-checklist input:checked')]
+    const selectedMaps = [...document.querySelectorAll(`#map-checklist-${game} input:checked`)]
         .map(cb => cb.value);
     
-    const startDate = new Date(document.getElementById('date-start').value);
-    const endDate = new Date(document.getElementById('date-end').value);
+    const startDate = new Date(document.getElementById(`date-start-${game}`).value);
+    const endDate = new Date(document.getElementById(`date-end-${game}`).value);
     
     return globalData.filter(d => {
         const date = new Date(d['UTC Timestamp']);
@@ -395,13 +393,14 @@ async function handleFileUpload(file) {
         globalData.mw3 = parsedData.mw3Data;
         
         console.log("Data loaded:", {
-            bo6: globalData.bo6.length,
-            mw3: globalData.mw3.length
+            bo6: globalData.bo6?.length || 0,
+            mw3: globalData.mw3?.length || 0
         });
         
-        updateFilters();
-        updateStats();
-        updatePlots();
+        const activeTab = document.querySelector('.tab-pane.active').id;
+        updateFilters(activeTab);
+        updateStats(activeTab);
+        updatePlots(activeTab);
         showSuccess("Data loaded successfully");
         
     } catch (error) {
@@ -474,31 +473,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Add tab change handler
     document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
         tab.addEventListener('shown.bs.tab', (e) => {
-            const activeTab = e.target.id;
-            updateFilters();
-            updateStats();
-            updatePlots();
+            const activeTab = e.target.getAttribute('data-bs-target').replace('#', '');
+            updateFilters(activeTab);
+            updateStats(activeTab);
+            updatePlots(activeTab);
         });
     });
     // No initialization needed
     
-    // Load example data button
-    document.getElementById('load-example-data').addEventListener('click', async () => {
-        try {
-            const response = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis_aider/refs/heads/non-dash2/data.html');
-            const content = await response.text();
-            globalData = parseHtmlFile(content);
-            console.log("Example data loaded:", globalData.length, "records");
-            
-            updateFilters();
-            updateStats();
-            updatePlots();
-            showSuccess("Example data loaded successfully");
-            
-        } catch (error) {
-            console.error("Error loading example data:", error);
-            showError("Error loading example data: " + error.message);
-        }
+    // Load example data buttons
+    ['bo6', 'mw3'].forEach(game => {
+        document.getElementById(`load-example-data-${game}`).addEventListener('click', async () => {
+            try {
+                const response = await fetch('data.html');
+                const content = await response.text();
+                const parsedData = parseHtmlFile(content);
+                globalData.bo6 = parsedData.bo6Data;
+                globalData.mw3 = parsedData.mw3Data;
+                
+                console.log("Example data loaded:", {
+                    bo6: globalData.bo6?.length || 0,
+                    mw3: globalData.mw3?.length || 0
+                });
+                
+                updateFilters(game);
+                updateStats(game);
+                updatePlots(game);
+                showSuccess("Example data loaded successfully");
+                
+            } catch (error) {
+                console.error("Error loading example data:", error);
+                showError("Error loading example data: " + error.message);
+            }
+        });
     });
     
     // File upload handling
