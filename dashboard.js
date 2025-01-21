@@ -8,10 +8,9 @@ const PLOT_THEME = {
     paper_bgcolor: '#2c3136',
     plot_bgcolor: '#2c3136',
     font: { color: '#ffffff' },
-    height: 300,
-    margin: { t: 30, b: 40, l: 60, r: 30 },  // Increased right margin
-    autosize: true,
-    responsive: true  // Add this
+    height: 300,  // Fixed height
+    margin: { t: 30, b: 40, l: 60, r: 30 },
+    autosize: true
 };
 
 const PLOT_COLORS = {
