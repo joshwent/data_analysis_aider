@@ -185,7 +185,10 @@ function updatePlots() {
     Plotly.newPlot('skill-plot', [skillData], createPlotLayout(
         'Skill Progression Over Time',
         { title: 'Time' },
-        { title: 'Skill Rating', tickformat: 'd' }
+        { 
+            title: 'Skill Rating',
+            tickformat: 'f0'
+        }
     ));
 
     // KD ratio by hour
@@ -243,7 +246,10 @@ function updatePlots() {
         marker: { color: '#00ffcc' }  // Different color for this plot
     }], createPlotLayout(
         'Skill Distribution',
-        { title: 'Skill Rating' },
+        { 
+            title: 'Skill Rating',
+            tickformat: 'f0'
+        },
         { title: 'Number of Matches' }
     ));
 
