@@ -410,48 +410,49 @@ async function handleFileUpload(file) {
 }
 
 // Filter management
-function updateFilters() {
-    if (!globalData) return;
+function updateFilters(game) {
+    const data = globalData[game];
+    if (!data) return;
     
     // Get unique values
-    const gameTypes = [...new Set(globalData.map(d => d['Game Type']))].sort();
-    const maps = [...new Set(globalData.map(d => d.Map))].sort();
-    const operators = [...new Set(globalData.map(d => d.Operator))].sort();
+    const gameTypes = [...new Set(data.map(d => d['Game Type']))].sort();
+    const maps = [...new Set(data.map(d => d.Map))].sort();
+    const operators = [...new Set(data.map(d => d.Operator))].sort();
     
     // Update game type checklist
-    const gameTypeList = document.getElementById('game-type-checklist');
+    const gameTypeList = document.getElementById(`game-type-checklist-${game}`);
     gameTypeList.innerHTML = gameTypes.map(type => `
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="${type}" id="gt-${type}" checked>
-            <label class="form-check-label" for="gt-${type}">${type}</label>
+            <input class="form-check-input" type="checkbox" value="${type}" id="gt-${game}-${type}" checked>
+            <label class="form-check-label" for="gt-${game}-${type}">${type}</label>
         </div>
     `).join('');
     
     // Update maps checklist
-    const mapList = document.getElementById('map-checklist');
+    const mapList = document.getElementById(`map-checklist-${game}`);
     mapList.innerHTML = maps.map(map => `
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="${map}" id="map-${map}" checked>
-            <label class="form-check-label" for="map-${map}">${map}</label>
+            <input class="form-check-input" type="checkbox" value="${map}" id="map-${game}-${map}" checked>
+            <label class="form-check-label" for="map-${game}-${map}">${map}</label>
         </div>
     `).join('');
 
     // Update operator checklist
-    const operatorList = document.getElementById('operator-checklist');
+    const operatorList = document.getElementById(`operator-checklist-${game}`);
     operatorList.innerHTML = operators.map(op => `
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="${op}" id="op-${op}" checked>
-            <label class="form-check-label" for="op-${op}">${op}</label>
+            <input class="form-check-input" type="checkbox" value="${op}" id="op-${game}-${op}" checked>
+            <label class="form-check-label" for="op-${game}-${op}">${op}</label>
         </div>
     `).join('');
     
     // Update date range
-    const dates = globalData.map(d => new Date(d['UTC Timestamp']));
+    const dates = data.map(d => new Date(d['UTC Timestamp']));
     const minDate = new Date(Math.min(...dates));
     const maxDate = new Date(Math.max(...dates));
     
-    document.getElementById('date-start').value = minDate.toISOString().split('T')[0];
-    document.getElementById('date-end').value = maxDate.toISOString().split('T')[0];
+    document.getElementById(`date-start-${game}`).value = minDate.toISOString().split('T')[0];
+    document.getElementById(`date-end-${game}`).value = maxDate.toISOString().split('T')[0];
 }
 
 // Event Listeners
