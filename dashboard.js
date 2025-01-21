@@ -8,8 +8,13 @@ const PLOT_THEME = {
     paper_bgcolor: '#2c3136',
     plot_bgcolor: '#2c3136',
     font: { color: '#ffffff' },
-    height: 300,  // Fixed height
-    margin: { t: 40, b: 50, l: 60, r: 40 },
+    height: window.innerWidth < 768 ? 250 : 300,  // Smaller height on mobile
+    margin: { 
+        t: 40, 
+        b: window.innerWidth < 768 ? 80 : 50,  // More bottom margin on mobile for labels
+        l: 60, 
+        r: 40 
+    },
     autosize: true
 };
 
@@ -97,19 +102,19 @@ function updateStats() {
                     <div class="card-body">
                         <h3 class="text-primary text-center mb-4">Lifetime Statistics</h3>
                         <div class="row text-center">
-                            <div class="col-3">
+                            <div class="col-6 col-md-3 mb-3 mb-md-0">
                                 <div class="mb-2"><strong>Total K/D</strong></div>
                                 <div class="h4">${lifetimeKD}</div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-6 col-md-3 mb-3 mb-md-0">
                                 <div class="mb-2"><strong>Overall Win Rate</strong></div>
                                 <div class="h4">${lifetimeWinRate}%</div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-2"><strong>Lifetime Accuracy</strong></div>
                                 <div class="h4">${lifetimeAccuracy}%</div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-2"><strong>Total Matches</strong></div>
                                 <div class="h4">${globalData.length}</div>
                             </div>
@@ -122,19 +127,19 @@ function updateStats() {
                     <div class="card-body">
                         <h3 class="text-primary text-center mb-4">Filtered Performance</h3>
                         <div class="row text-center">
-                            <div class="col-3">
+                            <div class="col-6 col-md-3 mb-3 mb-md-0">
                                 <div class="mb-2"><strong>Avg Skill Rating</strong></div>
                                 <div class="h4">${avgSkill}</div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-6 col-md-3 mb-3 mb-md-0">
                                 <div class="mb-2"><strong>Filtered K/D</strong></div>
                                 <div class="h4">${filteredKD}</div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-2"><strong>Win Rate</strong></div>
                                 <div class="h4">${filteredWinRate}%</div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-6 col-md-3">
                                 <div class="mb-2"><strong>Best Streak</strong></div>
                                 <div class="h4">${bestStreak}</div>
                             </div>
