@@ -117,6 +117,45 @@
     background: #4a4f54;
 }
 
+/* Improve text readability in header section */
+h1.text-primary {
+    color: #ffffff !important;  /* Make main title white */
+}
+
+.bg-card h2.text-primary {
+    color: #ffffff !important;  /* Make Data Import heading white */
+}
+
+#upload-zone {
+    color: #ffffff;  /* Make upload zone text white */
+}
+
+.text-secondary {
+    color: #a0a0a0 !important;  /* Make "- or -" text lighter gray */
+}
+
+/* Make button text more readable */
+.btn-secondary {
+    color: #ffffff !important;  /* Make Load Example Data button text white */
+}
+
+/* Make upload status messages more readable */
+#upload-status .alert {
+    color: #ffffff;
+}
+
+#upload-status .alert-success {
+    background-color: rgba(40, 167, 69, 0.9);  /* Semi-transparent success background */
+}
+
+#upload-status .alert-danger {
+    background-color: rgba(220, 53, 69, 0.9);  /* Semi-transparent error background */
+}
+
+#upload-status .alert-info {
+    background-color: rgba(23, 162, 184, 0.9);  /* Semi-transparent info background */
+}
+
 /* Style plot containers to match page theme */
 .plot-container {
     margin-bottom: 20px;
