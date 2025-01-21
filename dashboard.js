@@ -126,7 +126,7 @@ function updateStats(game) {
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="mb-2"><strong>Total Matches</strong></div>
-                                <div class="h4">${globalData.length}</div>
+                                <div class="h4">${data.length}</div>
                             </div>
                         </div>
                     </div>
