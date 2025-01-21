@@ -2,6 +2,40 @@
 let globalData = null;
 let pyodide = null;
 
+// Define common plot theme and layout settings
+const PLOT_THEME = {
+    template: 'plotly_dark',
+    paper_bgcolor: '#2c3136',
+    plot_bgcolor: '#2c3136',
+    font: { color: '#ffffff' },
+    height: 300,
+    margin: { t: 30, b: 40, l: 60, r: 20 }
+};
+
+const PLOT_COLORS = {
+    primary: '#7cb5ff',
+    success: '#7cb5ff',
+    danger: '#ff4d4d',
+    warning: '#ffff00'
+};
+
+// Helper function to create plot layout with common theme
+function createPlotLayout(title, xaxis = {}, yaxis = {}, additionalConfig = {}) {
+    return {
+        ...PLOT_THEME,
+        title,
+        xaxis: {
+            gridcolor: '#404448',
+            ...xaxis
+        },
+        yaxis: {
+            gridcolor: '#404448',
+            ...yaxis
+        },
+        ...additionalConfig
+    };
+}
+
 // Data filtering
 function getFilteredData() {
     if (!globalData) return [];
@@ -147,11 +181,9 @@ function updatePlots() {
         mode: 'lines',
         line: { color: '#5B9AFF', width: 2 }
     };
-    Plotly.newPlot('skill-plot', [skillData], {
-        title: 'Skill Progression Over Time',
-        template: 'plotly_dark',
-        height: 300
-    });
+    Plotly.newPlot('skill-plot', [skillData], createPlotLayout(
+        'Skill Progression Over Time'
+    ));
 
     // KD ratio by hour
     const hourlyData = {};
@@ -171,12 +203,8 @@ function updatePlots() {
         x: hourlyKD.map(d => `${d.hour}:00`),
         y: hourlyKD.map(d => d.kd),
         type: 'bar',
-        marker: { color: '#00ff00' }
-    }], {
-        title: 'Average K/D Ratio by Hour',
-        template: 'plotly_dark',
-        height: 300
-    });
+        marker: { color: PLOT_COLORS.primary }
+    }], createPlotLayout('Average K/D Ratio by Hour'));
 
     // Accuracy distribution
     const accuracyData = filteredData.map(d => Number(d.Hits) / Number(d.Shots) * 100);
@@ -184,14 +212,12 @@ function updatePlots() {
         x: accuracyData,
         type: 'histogram',
         nbinsx: 30,
-        marker: { color: 'orange' }
-    }], {
-        title: 'Accuracy Distribution',
-        xaxis: { title: 'Accuracy %' },
-        yaxis: { title: 'Number of Matches' },
-        template: 'plotly_dark',
-        height: 300
-    });
+        marker: { color: PLOT_COLORS.primary }
+    }], createPlotLayout(
+        'Accuracy Distribution',
+        { title: 'Accuracy %' },
+        { title: 'Number of Matches' }
+    ));
 
     // K/D distribution
     const kdData = filteredData.map(d => Number(d.Kills) / Math.max(1, Number(d.Deaths)));
