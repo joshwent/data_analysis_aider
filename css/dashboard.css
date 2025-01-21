@@ -101,11 +101,7 @@
     background: #4a4f54;
 }
 
-/* Improve plot containers */
+/* Remove the plot-container styling since Plotly already provides a container */
 .plot-container {
     margin-bottom: 20px;
-    background-color: #2c3136;
-    border-radius: 8px;
-    padding: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }

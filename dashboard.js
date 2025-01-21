@@ -330,13 +330,14 @@ function updatePlots() {
         labels: Object.keys(outcomes),
         type: 'pie',
         marker: {
-            colors: ['#00ff00', '#ff0000', '#ffff00']
+            colors: [PLOT_COLORS.success, PLOT_COLORS.danger, PLOT_COLORS.warning]
         }
-    }], {
-        title: 'Match Outcomes Distribution',
-        template: 'plotly_dark',
-        height: 300
-    });
+    }], createPlotLayout(
+        'Match Outcomes Distribution',
+        {},
+        {},
+        { showlegend: true }
+    ));
 }
 
 // Utility functions
