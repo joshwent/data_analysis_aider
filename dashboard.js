@@ -484,34 +484,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     // No initialization needed
     
-    // Load example data buttons
-    ['bo6', 'mw3'].forEach(game => {
-        document.getElementById(`load-example-data-${game}`).addEventListener('click', async () => {
-            try {
-                const response = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis_aider/refs/heads/main/data.html');
-                const content = await response.text();
-                const parsedData = parseHtmlFile(content);
-                
-                // Store both datasets
-                globalData.bo6 = parsedData.bo6Data;
-                globalData.mw3 = parsedData.mw3Data;
-                
-                console.log("Example data loaded:", {
-                    bo6: globalData.bo6?.length || 0,
-                    mw3: globalData.mw3?.length || 0
-                });
-                
-                // Update only the current game's view
+    // Load example data button
+    document.getElementById('load-example-data').addEventListener('click', async () => {
+        try {
+            const response = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis_aider/refs/heads/main/data.html');
+            const content = await response.text();
+            const parsedData = parseHtmlFile(content);
+            
+            // Store both datasets
+            globalData.bo6 = parsedData.bo6Data;
+            globalData.mw3 = parsedData.mw3Data;
+            
+            console.log("Example data loaded:", {
+                bo6: globalData.bo6?.length || 0,
+                mw3: globalData.mw3?.length || 0
+            });
+            
+            // Update both tabs
+            ['bo6', 'mw3'].forEach(game => {
                 updateFilters(game);
                 updateStats(game);
                 updatePlots(game);
-                showSuccess("Example data loaded successfully");
-                
-            } catch (error) {
-                console.error("Error loading example data:", error);
-                showError("Error loading example data: " + error.message);
-            }
-        });
+            });
+            
+            showSuccess("Example data loaded successfully");
+            
+        } catch (error) {
+            console.error("Error loading example data:", error);
+            showError("Error loading example data: " + error.message);
+        }
     });
     
     // File upload handling
