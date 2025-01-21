@@ -6,7 +6,7 @@ function parseHtmlFile(htmlContent) {
     function parseBO6Data() {
         const bo6Heading = Array.from(doc.querySelectorAll('h2')).find(h2 => 
             h2.textContent === "Multiplayer Match Data (reverse chronological)" && 
-            h2.previousElementSibling.textContent.includes("Black Ops 6")
+            h2.previousElementSibling.textContent.includes(" Call of Duty: Black Ops 6")
         );
         if (!bo6Heading) {
             throw new Error("Could not find BO6 Match Data heading");
@@ -24,7 +24,7 @@ function parseHtmlFile(htmlContent) {
     function parseMW3Data() {
         const mw3Heading = Array.from(doc.querySelectorAll('h2')).find(h2 => 
             h2.textContent === "Multiplayer Match Data (reverse chronological)" && 
-            h2.previousElementSibling.textContent.includes("Modern Warfare 3")
+            h2.previousElementSibling.textContent.includes(" Call of Duty: Modern Warfare III")
         );
         if (!mw3Heading) {
             throw new Error("Could not find MW3 Match Data heading");
