@@ -163,8 +163,8 @@ function updatePlots() {
     // Create plot containers
     const plotIds = [
         'skill-plot', 'kd-by-hour-plot', 'accuracy-hist', 'kd-hist',
-        'skill-hist', 'metrics-plot', 'map-performance', 'headshot-plot',
-        'damage-plot', 'outcome-plot'
+        'skill-hist', 'metrics-plot', 'accuracy-time-plot', 'map-performance', 
+        'headshot-plot', 'damage-plot', 'outcome-plot'
     ];
 
     plotIds.forEach(id => {
@@ -183,7 +183,9 @@ function updatePlots() {
         line: { color: '#5B9AFF', width: 2 }
     };
     Plotly.newPlot('skill-plot', [skillData], createPlotLayout(
-        'Skill Progression Over Time'
+        'Skill Progression Over Time',
+        { title: 'Time' },
+        { title: 'Skill Rating', tickformat: 'd' }
     ));
 
     // KD ratio by hour
@@ -245,24 +247,32 @@ function updatePlots() {
         { title: 'Number of Matches' }
     ));
 
-    // Performance metrics over time
-    const metricsData = [{
+    // K/D Ratio over time
+    const kdTimeData = {
         x: filteredData.map(d => d['UTC Timestamp']),
-        y: kdData,
-        name: 'K/D Ratio',
+        y: filteredData.map(d => Number(d.Kills) / Math.max(1, Number(d.Deaths))),
         type: 'scatter',
         mode: 'lines',
-        line: { color: '#5B9AFF' }
-    }, {
+        line: { color: '#5B9AFF', width: 2 }
+    };
+    Plotly.newPlot('metrics-plot', [kdTimeData], createPlotLayout(
+        'K/D Ratio Over Time',
+        { title: 'Time' },
+        { title: 'K/D Ratio' }
+    ));
+
+    // Accuracy over time
+    const accuracyTimeData = {
         x: filteredData.map(d => d['UTC Timestamp']),
-        y: accuracyData,
-        name: 'Accuracy',
+        y: filteredData.map(d => (Number(d.Hits) / Math.max(1, Number(d.Shots))) * 100),
         type: 'scatter',
         mode: 'lines',
-        line: { color: '#00ff00' }
-    }];
-    Plotly.newPlot('metrics-plot', metricsData, createPlotLayout(
-        'Performance Metrics Over Time'
+        line: { color: '#00ff00', width: 2 }
+    };
+    Plotly.newPlot('accuracy-time-plot', [accuracyTimeData], createPlotLayout(
+        'Accuracy Over Time',
+        { title: 'Time' },
+        { title: 'Accuracy %' }
     ));
 
     // Map performance
