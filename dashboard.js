@@ -485,7 +485,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     ['bo6', 'mw3'].forEach(game => {
         document.getElementById(`load-example-data-${game}`).addEventListener('click', async () => {
             try {
-                const response = await fetch('data.html');
+                const response = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis_aider/refs/heads/non-dash2/data.html');
                 const content = await response.text();
                 const parsedData = parseHtmlFile(content);
                 globalData.bo6 = parsedData.bo6Data;
