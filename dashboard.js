@@ -73,6 +73,8 @@ function getFilteredData(game) {
 // Stats calculation and display
 function updateStats(game) {
     const filteredData = getFilteredData(game);
+    const data = globalData[game];
+    
     if (!filteredData.length) {
         document.getElementById(`stats-container-${game}`).innerHTML = 
             '<div class="alert alert-info">Select filters to display statistics</div>';
@@ -80,13 +82,13 @@ function updateStats(game) {
     }
 
     // Calculate lifetime stats
-    const totalKills = globalData.reduce((sum, d) => sum + Number(d.Kills), 0);
-    const totalDeaths = globalData.reduce((sum, d) => sum + Number(d.Deaths), 0);
+    const totalKills = data.reduce((sum, d) => sum + Number(d.Kills), 0);
+    const totalDeaths = data.reduce((sum, d) => sum + Number(d.Deaths), 0);
     const lifetimeKD = (totalKills / totalDeaths).toFixed(2);
-    const totalWins = globalData.filter(d => d['Match Outcome'].toLowerCase().includes('win')).length;
-    const lifetimeWinRate = ((totalWins / globalData.length) * 100).toFixed(1);
-    const totalShots = globalData.reduce((sum, d) => sum + Number(d.Shots), 0);
-    const totalHits = globalData.reduce((sum, d) => sum + Number(d.Hits), 0);
+    const totalWins = data.filter(d => d['Match Outcome'].toLowerCase().includes('win')).length;
+    const lifetimeWinRate = ((totalWins / data.length) * 100).toFixed(1);
+    const totalShots = data.reduce((sum, d) => sum + Number(d.Shots), 0);
+    const totalHits = data.reduce((sum, d) => sum + Number(d.Hits), 0);
     const lifetimeAccuracy = ((totalHits / totalShots) * 100).toFixed(1);
     
     // Calculate filtered stats
@@ -154,7 +156,7 @@ function updateStats(game) {
         </div>
     `;
     
-    document.getElementById('stats-container').innerHTML = statsHtml;
+    document.getElementById(`stats-container-${game}`).innerHTML = statsHtml;
 }
 
 // Plot creation and update
