@@ -1,3 +1,8 @@
+// Helper function for theme colors
+function getThemeColor(game) {
+    return game === 'bo6' ? '#ff6b00' : '#00ff66';
+}
+
 // Global state
 let globalData = {
     bo6: null,
@@ -22,8 +27,7 @@ const PLOT_THEME = {
 };
 
 const PLOT_COLORS = {
-    primary: '#7cb5ff',
-    success: '#7cb5ff',
+    success: '#00ff66',
     danger: '#ff4d4d',
     warning: '#ffff00'
 };
@@ -191,7 +195,7 @@ function updatePlots(game) {
         y: filteredData.map(d => Number(d.Skill)),
         type: 'scatter',
         mode: 'lines',
-        line: { color: '#5B9AFF', width: 2 }
+        line: { color: getThemeColor(game), width: 2 }
     };
     Plotly.newPlot(`skill-plot-${game}`, [skillData], createPlotLayout(
         'Skill Progression Over Time',
@@ -220,7 +224,7 @@ function updatePlots(game) {
         x: hourlyKD.map(d => `${d.hour}:00`),
         y: hourlyKD.map(d => d.kd),
         type: 'bar',
-        marker: { color: PLOT_COLORS.primary }
+        marker: { color: getThemeColor(game) }
     }], createPlotLayout('Average K/D Ratio by Hour'));
 
     // Accuracy distribution
@@ -229,7 +233,7 @@ function updatePlots(game) {
         x: accuracyData,
         type: 'histogram',
         nbinsx: 30,
-        marker: { color: PLOT_COLORS.primary }
+        marker: { color: getThemeColor(game) }
     }], createPlotLayout(
         'Accuracy Distribution',
         { title: 'Accuracy %' },
@@ -270,7 +274,7 @@ function updatePlots(game) {
         y: filteredData.map(d => Number(d.Kills) / Math.max(1, Number(d.Deaths))),
         type: 'scatter',
         mode: 'lines',
-        line: { color: '#5B9AFF', width: 2 }
+        line: { color: getThemeColor(game), width: 2 }
     };
     Plotly.newPlot(`metrics-plot-${game}`, [kdTimeData], createPlotLayout(
         'K/D Ratio Over Time',
@@ -284,7 +288,7 @@ function updatePlots(game) {
         y: filteredData.map(d => (Number(d.Hits) / Math.max(1, Number(d.Shots))) * 100),
         type: 'scatter',
         mode: 'lines',
-        line: { color: '#00ff00', width: 2 }
+        line: { color: getThemeColor(game), width: 2 }
     };
     Plotly.newPlot(`accuracy-time-plot-${game}`, [accuracyTimeData], createPlotLayout(
         'Accuracy Over Time',
@@ -323,7 +327,7 @@ function updatePlots(game) {
         x: mapKD.map(d => d.map),
         y: mapKD.map(d => d.kd),
         type: 'bar',
-        marker: { color: '#9966ff' }
+        marker: { color: getThemeColor(game) }
     }], createPlotLayout(
         'K/D Ratio by Map',
         { tickangle: 45 },

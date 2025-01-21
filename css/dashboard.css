@@ -1,6 +1,22 @@
-/* Improve text contrast */
-.text-primary {
-    color: #7cb5ff !important; /* Lighter, more readable blue */
+/* BO6 Theme - Orange */
+#bo6 .text-primary,
+#bo6-tab.active {
+    color: #ff6b00 !important;
+}
+
+/* MW3 Theme - Green */
+#mw3 .text-primary,
+#mw3-tab.active {
+    color: #00ff66 !important;
+}
+
+/* Tab hover states */
+#bo6-tab:not(.active):hover {
+    color: #ff6b00;
+}
+
+#mw3-tab:not(.active):hover {
+    color: #00ff66;
 }
 
 /* Improve card styling */
