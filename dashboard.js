@@ -71,10 +71,10 @@ function getFilteredData(game) {
 }
 
 // Stats calculation and display
-function updateStats() {
-    const filteredData = getFilteredData();
+function updateStats(game) {
+    const filteredData = getFilteredData(game);
     if (!filteredData.length) {
-        document.getElementById('stats-container').innerHTML = 
+        document.getElementById(`stats-container-${game}`).innerHTML = 
             '<div class="alert alert-info">Select filters to display statistics</div>';
         return;
     }
@@ -158,10 +158,10 @@ function updateStats() {
 }
 
 // Plot creation and update
-function updatePlots() {
-    const filteredData = getFilteredData();
+function updatePlots(game) {
+    const filteredData = getFilteredData(game);
     if (!filteredData.length) {
-        document.getElementById('plots-container').innerHTML = 
+        document.getElementById(`plots-container-${game}`).innerHTML = 
             '<div class="alert alert-info">Select filters to display charts</div>';
         return;
     }
@@ -485,9 +485,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     ['bo6', 'mw3'].forEach(game => {
         document.getElementById(`load-example-data-${game}`).addEventListener('click', async () => {
             try {
-                const response = await fetch('https://raw.githubusercontent.com/joshwent/data_analysis_aider/refs/heads/non-dash2/data.html');
+                const response = await fetch('data.html');
                 const content = await response.text();
                 const parsedData = parseHtmlFile(content);
+                
+                // Store both datasets
                 globalData.bo6 = parsedData.bo6Data;
                 globalData.mw3 = parsedData.mw3Data;
                 
@@ -496,6 +498,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     mw3: globalData.mw3?.length || 0
                 });
                 
+                // Update only the current game's view
                 updateFilters(game);
                 updateStats(game);
                 updatePlots(game);
