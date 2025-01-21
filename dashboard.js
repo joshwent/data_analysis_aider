@@ -1,5 +1,8 @@
 // Global state
-let globalData = null;
+let globalData = {
+    multiplayer: null,
+    second: null
+};
 let pyodide = null;
 
 // Define common plot theme and layout settings
@@ -384,8 +387,14 @@ function showSuccess(message) {
 async function handleFileUpload(file) {
     try {
         const content = await file.text();
-        globalData = parseHtmlFile(content);
-        console.log("Data loaded:", globalData.length, "records");
+        const parsedData = parseHtmlFile(content);
+        globalData.multiplayer = parsedData.multiplayerData;
+        globalData.second = parsedData.secondTableData;
+        
+        console.log("Data loaded:", {
+            multiplayer: globalData.multiplayer.length,
+            second: globalData.second.length
+        });
         
         updateFilters();
         updateStats();
@@ -458,6 +467,16 @@ function resizePlots() {
 document.addEventListener('DOMContentLoaded', async () => {
     // Add window resize listener
     window.addEventListener('resize', resizePlots);
+
+    // Add tab change handler
+    document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', (e) => {
+            const activeTab = e.target.id;
+            updateFilters();
+            updateStats();
+            updatePlots();
+        });
+    });
     // No initialization needed
     
     // Load example data button
