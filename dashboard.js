@@ -168,7 +168,7 @@ function updatePlots(game) {
         return;
     }
 
-    const plotsContainer = document.getElementById('plots-container');
+    const plotsContainer = document.getElementById(`plots-container-${game}`);
     plotsContainer.innerHTML = ''; // Clear existing plots
 
     // Create plot containers
@@ -180,7 +180,7 @@ function updatePlots(game) {
 
     plotIds.forEach(id => {
         const div = document.createElement('div');
-        div.id = id;
+        div.id = `${id}-${game}`;
         div.className = 'plot-container';
         plotsContainer.appendChild(div);
     });
@@ -193,7 +193,7 @@ function updatePlots(game) {
         mode: 'lines',
         line: { color: '#5B9AFF', width: 2 }
     };
-    Plotly.newPlot('skill-plot', [skillData], createPlotLayout(
+    Plotly.newPlot(`skill-plot-${game}`, [skillData], createPlotLayout(
         'Skill Progression Over Time',
         { title: 'Time' },
         { 
@@ -216,7 +216,7 @@ function updatePlots(game) {
         kd: data.deaths > 0 ? data.kills / data.deaths : data.kills
     })).sort((a, b) => a.hour - b.hour);
 
-    Plotly.newPlot('kd-by-hour-plot', [{
+    Plotly.newPlot(`kd-by-hour-plot-${game}`, [{
         x: hourlyKD.map(d => `${d.hour}:00`),
         y: hourlyKD.map(d => d.kd),
         type: 'bar',
@@ -225,7 +225,7 @@ function updatePlots(game) {
 
     // Accuracy distribution
     const accuracyData = filteredData.map(d => Number(d.Hits) / Number(d.Shots) * 100);
-    Plotly.newPlot('accuracy-hist', [{
+    Plotly.newPlot(`accuracy-hist-${game}`, [{
         x: accuracyData,
         type: 'histogram',
         nbinsx: 30,
@@ -238,7 +238,7 @@ function updatePlots(game) {
 
     // K/D distribution
     const kdData = filteredData.map(d => Number(d.Kills) / Math.max(1, Number(d.Deaths)));
-    Plotly.newPlot('kd-hist', [{
+    Plotly.newPlot(`kd-hist-${game}`, [{
         x: kdData,
         type: 'histogram',
         nbinsx: 30,
@@ -250,7 +250,7 @@ function updatePlots(game) {
     ));
 
     // Skill distribution
-    Plotly.newPlot('skill-hist', [{
+    Plotly.newPlot(`skill-hist-${game}`, [{
         x: filteredData.map(d => Number(d.Skill)),
         type: 'histogram',
         nbinsx: 30,
@@ -272,7 +272,7 @@ function updatePlots(game) {
         mode: 'lines',
         line: { color: '#5B9AFF', width: 2 }
     };
-    Plotly.newPlot('metrics-plot', [kdTimeData], createPlotLayout(
+    Plotly.newPlot(`metrics-plot-${game}`, [kdTimeData], createPlotLayout(
         'K/D Ratio Over Time',
         { title: 'Time' },
         { title: 'K/D Ratio' }
@@ -286,7 +286,7 @@ function updatePlots(game) {
         mode: 'lines',
         line: { color: '#00ff00', width: 2 }
     };
-    Plotly.newPlot('accuracy-time-plot', [accuracyTimeData], createPlotLayout(
+    Plotly.newPlot(`accuracy-time-plot-${game}`, [accuracyTimeData], createPlotLayout(
         'Accuracy Over Time',
         { title: 'Time' },
         { title: 'Accuracy %' }
@@ -300,7 +300,7 @@ function updatePlots(game) {
         mode: 'lines',
         line: { color: '#ff4d4d', width: 2 }
     };
-    Plotly.newPlot('headshot-plot', [headshotData], createPlotLayout(
+    Plotly.newPlot(`headshot-plot-${game}`, [headshotData], createPlotLayout(
         'Headshot Ratio Over Time',
         {},
         { title: 'Headshot Ratio' }
@@ -319,7 +319,7 @@ function updatePlots(game) {
         kd: data.kills / Math.max(1, data.deaths)
     })).sort((a, b) => b.kd - a.kd);
 
-    Plotly.newPlot('map-performance', [{
+    Plotly.newPlot(`map-performance-${game}`, [{
         x: mapKD.map(d => d.map),
         y: mapKD.map(d => d.kd),
         type: 'bar',
@@ -334,7 +334,7 @@ function updatePlots(game) {
     ));
 
     // Damage efficiency
-    Plotly.newPlot('damage-plot', [{
+    Plotly.newPlot(`damage-plot-${game}`, [{
         x: filteredData.map(d => Number(d['Damage Taken'])),
         y: filteredData.map(d => Number(d['Damage Done'])),
         mode: 'markers',
@@ -357,7 +357,7 @@ function updatePlots(game) {
         outcomes[outcome] = (outcomes[outcome] || 0) + 1;
     });
 
-    Plotly.newPlot('outcome-plot', [{
+    Plotly.newPlot(`outcome-plot-${game}`, [{
         values: Object.values(outcomes),
         labels: Object.keys(outcomes),
         type: 'pie',
