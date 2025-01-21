@@ -43,23 +43,6 @@
                 <div class="bg-card p-4 rounded">
                     <h2 class="text-primary mb-3">Filters</h2>
                     <div class="accordion" id="filterAccordion">
-                        <!-- Operators Filter -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#operatorCollapse">
-                                    Operators
-                                </button>
-                            </h2>
-                            <div id="operatorCollapse" class="accordion-collapse collapse show">
-                                <div class="accordion-body">
-                                    <div class="mb-2">
-                                        <button id="operator-select-all" class="btn btn-primary btn-sm me-2">Select All</button>
-                                        <button id="operator-deselect-all" class="btn btn-secondary btn-sm">Deselect All</button>
-                                    </div>
-                                    <div id="operator-checklist" class="filter-checklist"></div>
-                                </div>
-                            </div>
-                        </div>
                         <!-- Game Types Filter -->
                         <div class="accordion-item">
                             <h2 class="accordion-header">
@@ -91,6 +74,23 @@
                                         <button id="map-deselect-all" class="btn btn-secondary btn-sm">Deselect All</button>
                                     </div>
                                     <div id="map-checklist" class="filter-checklist"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Operators Filter -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#operatorCollapse">
+                                    Operators
+                                </button>
+                            </h2>
+                            <div id="operatorCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <div class="mb-2">
+                                        <button id="operator-select-all" class="btn btn-primary btn-sm me-2">Select All</button>
+                                        <button id="operator-deselect-all" class="btn btn-secondary btn-sm">Deselect All</button>
+                                    </div>
+                                    <div id="operator-checklist" class="filter-checklist"></div>
                                 </div>
                             </div>
                         </div>

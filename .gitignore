@@ -1,2 +1,6 @@
 .aider*
 .env
+
+.DS_Store
+ignore
+__pycache__
