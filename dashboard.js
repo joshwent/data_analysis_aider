@@ -9,8 +9,9 @@ const PLOT_THEME = {
     plot_bgcolor: '#2c3136',
     font: { color: '#ffffff' },
     height: 300,
-    margin: { t: 30, b: 40, l: 60, r: 20 },
-    autosize: true
+    margin: { t: 30, b: 40, l: 60, r: 30 },  // Increased right margin
+    autosize: true,
+    responsive: true  // Add this
 };
 
 const PLOT_COLORS = {
@@ -416,7 +417,17 @@ function updateFilters() {
 }
 
 // Event Listeners
+// Add resize handler
+function resizePlots() {
+    const plots = document.querySelectorAll('.js-plotly-plot');
+    plots.forEach(plot => {
+        Plotly.Plots.resize(plot);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+    // Add window resize listener
+    window.addEventListener('resize', resizePlots);
     // No initialization needed
     
     // Load example data button

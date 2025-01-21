@@ -108,13 +108,14 @@
     background-color: #2c3136;
     border-radius: 8px;
     width: 100%;
+    overflow: hidden;  /* Prevent plot from overflowing */
 }
 
 /* Make plotly charts responsive */
-.js-plotly-plot {
+.js-plotly-plot, .plot-container .plotly {
     width: 100% !important;
 }
 
-.plotly {
+.main-svg {
     width: 100% !important;
 }
