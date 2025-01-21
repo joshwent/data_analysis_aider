@@ -421,7 +421,10 @@ function updateFilters() {
 function resizePlots() {
     const plots = document.querySelectorAll('.js-plotly-plot');
     plots.forEach(plot => {
-        Plotly.Plots.resize(plot);
+        const update = {
+            width: plot.parentElement.clientWidth
+        };
+        Plotly.relayout(plot, update);
     });
 }
 
