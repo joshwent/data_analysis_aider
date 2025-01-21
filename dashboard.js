@@ -546,62 +546,67 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (file) handleFileUpload(file);
     });
     
-    // Select/Deselect all buttons
-    document.getElementById('operator-select-all').addEventListener('click', () => {
-        document.querySelectorAll('#operator-checklist input[type="checkbox"]')
-            .forEach(cb => cb.checked = true);
-        updateStats();
-        updatePlots();
-    });
-    
-    document.getElementById('operator-deselect-all').addEventListener('click', () => {
-        document.querySelectorAll('#operator-checklist input[type="checkbox"]')
-            .forEach(cb => cb.checked = false);
-        updateStats();
-        updatePlots();
-    });
-    
-    document.getElementById('game-type-select-all').addEventListener('click', () => {
-        document.querySelectorAll('#game-type-checklist input[type="checkbox"]')
-            .forEach(cb => cb.checked = true);
-        updateStats();
-        updatePlots();
-    });
-    
-    document.getElementById('game-type-deselect-all').addEventListener('click', () => {
-        document.querySelectorAll('#game-type-checklist input[type="checkbox"]')
-            .forEach(cb => cb.checked = false);
-        updateStats();
-        updatePlots();
-    });
-
-    document.getElementById('map-select-all').addEventListener('click', () => {
-        document.querySelectorAll('#map-checklist input[type="checkbox"]')
-            .forEach(cb => cb.checked = true);
-        updateStats();
-        updatePlots();
-    });
-    
-    document.getElementById('map-deselect-all').addEventListener('click', () => {
-        document.querySelectorAll('#map-checklist input[type="checkbox"]')
-            .forEach(cb => cb.checked = false);
-        updateStats();
-        updatePlots();
-    });
-    
-    // Add change listeners for all filters
-    ['operator-checklist', 'game-type-checklist', 'map-checklist'].forEach(id => {
-        document.getElementById(id).addEventListener('change', () => {
-            updateStats();
-            updatePlots();
+    // Update select/deselect all buttons for both games
+    ['bo6', 'mw3'].forEach(game => {
+        // Operator buttons
+        document.getElementById(`operator-select-all-${game}`).addEventListener('click', () => {
+            document.querySelectorAll(`#operator-checklist-${game} input[type="checkbox"]`)
+                .forEach(cb => cb.checked = true);
+            updateStats(game);
+            updatePlots(game);
         });
-    });
+        
+        document.getElementById(`operator-deselect-all-${game}`).addEventListener('click', () => {
+            document.querySelectorAll(`#operator-checklist-${game} input[type="checkbox"]`)
+                .forEach(cb => cb.checked = false);
+            updateStats(game);
+            updatePlots(game);
+        });
+        
+        // Game type buttons
+        document.getElementById(`game-type-select-all-${game}`).addEventListener('click', () => {
+            document.querySelectorAll(`#game-type-checklist-${game} input[type="checkbox"]`)
+                .forEach(cb => cb.checked = true);
+            updateStats(game);
+            updatePlots(game);
+        });
+        
+        document.getElementById(`game-type-deselect-all-${game}`).addEventListener('click', () => {
+            document.querySelectorAll(`#game-type-checklist-${game} input[type="checkbox"]`)
+                .forEach(cb => cb.checked = false);
+            updateStats(game);
+            updatePlots(game);
+        });
 
-    // Date range listeners
-    ['date-start', 'date-end'].forEach(id => {
-        document.getElementById(id).addEventListener('change', () => {
-            updateStats();
-            updatePlots();
+        // Map buttons
+        document.getElementById(`map-select-all-${game}`).addEventListener('click', () => {
+            document.querySelectorAll(`#map-checklist-${game} input[type="checkbox"]`)
+                .forEach(cb => cb.checked = true);
+            updateStats(game);
+            updatePlots(game);
+        });
+        
+        document.getElementById(`map-deselect-all-${game}`).addEventListener('click', () => {
+            document.querySelectorAll(`#map-checklist-${game} input[type="checkbox"]`)
+                .forEach(cb => cb.checked = false);
+            updateStats(game);
+            updatePlots(game);
+        });
+        
+        // Add change listeners for all filters
+        [`operator-checklist-${game}`, `game-type-checklist-${game}`, `map-checklist-${game}`].forEach(id => {
+            document.getElementById(id).addEventListener('change', () => {
+                updateStats(game);
+                updatePlots(game);
+            });
+        });
+
+        // Date range listeners
+        [`date-start-${game}`, `date-end-${game}`].forEach(id => {
+            document.getElementById(id).addEventListener('change', () => {
+                updateStats(game);
+                updatePlots(game);
+            });
         });
     });
 });

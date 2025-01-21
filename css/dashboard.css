@@ -222,13 +222,26 @@ h1.text-primary {
     }
 }
 
-/* Make filter checklists more touch-friendly */
-.form-check {
-    padding: 8px 0;
+/* Make checkboxes visible */
+.form-check-input {
+    background-color: #262626;
+    border-color: #404448;
+    margin-top: 0.3rem;
 }
 
-.form-check-input {
-    margin-top: 0.3rem;
+.form-check-input:checked {
+    background-color: #7cb5ff;
+    border-color: #7cb5ff;
+}
+
+.form-check-label {
+    color: #ffffff;
+}
+
+/* Improve checkbox spacing */
+.form-check {
+    padding: 8px 0;
+    margin-bottom: 0.5rem;
 }
 
 /* Improve touch targets */
