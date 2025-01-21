@@ -1,7 +1,7 @@
 // Global state
 let globalData = {
-    multiplayer: null,
-    second: null
+    bo6: null,
+    mw3: null
 };
 let pyodide = null;
 
@@ -47,7 +47,10 @@ function createPlotLayout(title, xaxis = {}, yaxis = {}, additionalConfig = {}) 
 
 // Data filtering
 function getFilteredData() {
-    if (!globalData) return [];
+    const activeTab = document.querySelector('.tab-pane.active').id;
+    const data = activeTab === 'bo6' ? globalData.bo6 : globalData.mw3;
+    
+    if (!data) return [];
     
     const selectedOperators = [...document.querySelectorAll('#operator-checklist input:checked')]
         .map(cb => cb.value);
@@ -388,12 +391,12 @@ async function handleFileUpload(file) {
     try {
         const content = await file.text();
         const parsedData = parseHtmlFile(content);
-        globalData.multiplayer = parsedData.multiplayerData;
-        globalData.second = parsedData.secondTableData;
+        globalData.bo6 = parsedData.bo6Data;
+        globalData.mw3 = parsedData.mw3Data;
         
         console.log("Data loaded:", {
-            multiplayer: globalData.multiplayer.length,
-            second: globalData.second.length
+            bo6: globalData.bo6.length,
+            mw3: globalData.mw3.length
         });
         
         updateFilters();

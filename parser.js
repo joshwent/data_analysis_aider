@@ -2,44 +2,37 @@ function parseHtmlFile(htmlContent) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, 'text/html');
 
-    // Find the section with "Copy of Your Data"
-    const dataSection = Array.from(doc.querySelectorAll('h1')).find(h1 => h1.textContent === "Copy of Your Data");
-    if (!dataSection) {
-        throw new Error("Could not find Copy of Your Data section");
-    }
-
-    // Find the Call of Duty section
-    const codHeading = Array.from(doc.querySelectorAll('h1')).find(h1 => h1.textContent === " Call of Duty: Black Ops 6");
-    if (!codHeading) {
-        throw new Error("Could not find Call of Duty: Black Ops 6 heading");
-    }
-
-    // Parse multiplayer data
-    function parseMultiplayerData() {
-        const mpHeading = Array.from(doc.querySelectorAll('h2')).find(h2 => h2.textContent === "Multiplayer Match Data (reverse chronological)");
-        if (!mpHeading) {
-            throw new Error("Could not find Multiplayer Match Data heading");
+    // Parse BO6 data
+    function parseBO6Data() {
+        const bo6Heading = Array.from(doc.querySelectorAll('h2')).find(h2 => 
+            h2.textContent === "Multiplayer Match Data (reverse chronological)" && 
+            h2.previousElementSibling.textContent.includes("Black Ops 6")
+        );
+        if (!bo6Heading) {
+            throw new Error("Could not find BO6 Match Data heading");
         }
 
-        const table = mpHeading.nextElementSibling;
+        const table = bo6Heading.nextElementSibling;
         if (!table || table.tagName !== 'TABLE') {
-            throw new Error("Could not find match data table");
+            throw new Error("Could not find BO6 match data table");
         }
 
         return parseTable(table);
     }
 
-    // Parse second table (you'll need to specify the correct heading)
-    function parseSecondTable() {
-        // Replace this with the actual heading text for your second table
-        const secondHeading = Array.from(doc.querySelectorAll('h2')).find(h2 => h2.textContent === "Your Second Table Heading");
-        if (!secondHeading) {
-            throw new Error("Could not find second table heading");
+    // Parse MW3 data
+    function parseMW3Data() {
+        const mw3Heading = Array.from(doc.querySelectorAll('h2')).find(h2 => 
+            h2.textContent === "Multiplayer Match Data (reverse chronological)" && 
+            h2.previousElementSibling.textContent.includes("Modern Warfare 3")
+        );
+        if (!mw3Heading) {
+            throw new Error("Could not find MW3 Match Data heading");
         }
 
-        const table = secondHeading.nextElementSibling;
+        const table = mw3Heading.nextElementSibling;
         if (!table || table.tagName !== 'TABLE') {
-            throw new Error("Could not find second table");
+            throw new Error("Could not find MW3 match data table");
         }
 
         return parseTable(table);
@@ -62,8 +55,8 @@ function parseHtmlFile(htmlContent) {
     }
 
     return {
-        multiplayerData: parseMultiplayerData(),
-        secondTableData: parseSecondTable()
+        bo6Data: parseBO6Data(),
+        mw3Data: parseMW3Data()
     };
 
   // Convert numeric fields
