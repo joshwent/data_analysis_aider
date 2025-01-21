@@ -163,8 +163,8 @@ function updatePlots() {
     // Create plot containers
     const plotIds = [
         'skill-plot', 'kd-by-hour-plot', 'accuracy-hist', 'kd-hist',
-        'skill-hist', 'metrics-plot', 'accuracy-time-plot', 'map-performance', 
-        'headshot-plot', 'damage-plot', 'outcome-plot'
+        'skill-hist', 'metrics-plot', 'accuracy-time-plot', 'headshot-plot',
+        'map-performance', 'damage-plot', 'outcome-plot'
     ];
 
     plotIds.forEach(id => {
@@ -275,6 +275,20 @@ function updatePlots() {
         { title: 'Accuracy %' }
     ));
 
+    // Headshot ratio over time
+    const headshotData = {
+        x: filteredData.map(d => d['UTC Timestamp']),
+        y: filteredData.map(d => Number(d.Headshots) / Math.max(1, Number(d.Kills))),
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: '#ff4d4d', width: 2 }
+    };
+    Plotly.newPlot('headshot-plot', [headshotData], createPlotLayout(
+        'Headshot Ratio Over Time',
+        {},
+        { title: 'Headshot Ratio' }
+    ));
+
     // Map performance
     const mapStats = {};
     filteredData.forEach(d => {
@@ -300,20 +314,6 @@ function updatePlots() {
         { 
             margin: { t: 50, b: 120, l: 80, r: 50 }  // Increased margins
         }
-    ));
-
-    // Headshot ratio over time
-    const headshotData = {
-        x: filteredData.map(d => d['UTC Timestamp']),
-        y: filteredData.map(d => Number(d.Headshots) / Math.max(1, Number(d.Kills))),
-        type: 'scatter',
-        mode: 'lines',
-        line: { color: '#ff4d4d', width: 2 }
-    };
-    Plotly.newPlot('headshot-plot', [headshotData], createPlotLayout(
-        'Headshot Ratio Over Time',
-        {},
-        { title: 'Headshot Ratio' }
     ));
 
     // Damage efficiency
@@ -392,18 +392,9 @@ function updateFilters() {
     if (!globalData) return;
     
     // Get unique values
-    const operators = [...new Set(globalData.map(d => d.Operator))].sort();
     const gameTypes = [...new Set(globalData.map(d => d['Game Type']))].sort();
     const maps = [...new Set(globalData.map(d => d.Map))].sort();
-    
-    // Update operator checklist
-    const operatorList = document.getElementById('operator-checklist');
-    operatorList.innerHTML = operators.map(op => `
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="${op}" id="op-${op}" checked>
-            <label class="form-check-label" for="op-${op}">${op}</label>
-        </div>
-    `).join('');
+    const operators = [...new Set(globalData.map(d => d.Operator))].sort();
     
     // Update game type checklist
     const gameTypeList = document.getElementById('game-type-checklist');
@@ -420,6 +411,15 @@ function updateFilters() {
         <div class="form-check">
             <input class="form-check-input" type="checkbox" value="${map}" id="map-${map}" checked>
             <label class="form-check-label" for="map-${map}">${map}</label>
+        </div>
+    `).join('');
+
+    // Update operator checklist
+    const operatorList = document.getElementById('operator-checklist');
+    operatorList.innerHTML = operators.map(op => `
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="${op}" id="op-${op}" checked>
+            <label class="form-check-label" for="op-${op}">${op}</label>
         </div>
     `).join('');
     
