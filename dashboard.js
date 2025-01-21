@@ -292,12 +292,14 @@ function updatePlots() {
         x: mapKD.map(d => d.map),
         y: mapKD.map(d => d.kd),
         type: 'bar',
-        marker: { color: '#9966ff' }  // Different color for this plot
+        marker: { color: '#9966ff' }
     }], createPlotLayout(
         'K/D Ratio by Map',
         { tickangle: 45 },
-        {},
-        { margin: { b: 100 } }  // Extra bottom margin for rotated labels
+        { title: 'K/D Ratio' },  // Add y-axis title
+        { 
+            margin: { t: 50, b: 120, l: 80, r: 50 }  // Increased margins
+        }
     ));
 
     // Headshot ratio over time
@@ -349,7 +351,10 @@ function updatePlots() {
         'Match Outcomes Distribution',
         {},
         {},
-        { showlegend: true }
+        { 
+            showlegend: true,
+            margin: { t: 50, b: 50, l: 50, r: 120 }  // Increased right margin for legend
+        }
     ));
 }
 
