@@ -9,7 +9,7 @@ const PLOT_THEME = {
     plot_bgcolor: '#2c3136',
     font: { color: '#ffffff' },
     height: 300,  // Fixed height
-    margin: { t: 30, b: 40, l: 60, r: 30 },
+    margin: { t: 40, b: 50, l: 60, r: 40 },
     autosize: true
 };
 
@@ -295,7 +295,9 @@ function updatePlots() {
         marker: { color: '#9966ff' }  // Different color for this plot
     }], createPlotLayout(
         'K/D Ratio by Map',
-        { tickangle: 45 }
+        { tickangle: 45 },
+        {},
+        { margin: { b: 100 } }  // Extra bottom margin for rotated labels
     ));
 
     // Headshot ratio over time
