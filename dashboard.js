@@ -9,7 +9,8 @@ const PLOT_THEME = {
     plot_bgcolor: '#2c3136',
     font: { color: '#ffffff' },
     height: 300,
-    margin: { t: 30, b: 40, l: 60, r: 20 }
+    margin: { t: 30, b: 40, l: 60, r: 20 },
+    autosize: true
 };
 
 const PLOT_COLORS = {

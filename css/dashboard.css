@@ -107,4 +107,14 @@
     padding: 15px;
     background-color: #2c3136;
     border-radius: 8px;
+    width: 100%;
+}
+
+/* Make plotly charts responsive */
+.js-plotly-plot {
+    width: 100% !important;
+}
+
+.plotly {
+    width: 100% !important;
 }
