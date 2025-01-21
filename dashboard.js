@@ -225,28 +225,24 @@ function updatePlots() {
         x: kdData,
         type: 'histogram',
         nbinsx: 30,
-        marker: { color: 'red' }
-    }], {
-        title: 'K/D Ratio Distribution',
-        xaxis: { title: 'K/D Ratio' },
-        yaxis: { title: 'Number of Matches' },
-        template: 'plotly_dark',
-        height: 300
-    });
+        marker: { color: '#ff66b2' }  // Different color for this plot
+    }], createPlotLayout(
+        'K/D Ratio Distribution',
+        { title: 'K/D Ratio' },
+        { title: 'Number of Matches' }
+    ));
 
     // Skill distribution
     Plotly.newPlot('skill-hist', [{
         x: filteredData.map(d => Number(d.Skill)),
         type: 'histogram',
         nbinsx: 30,
-        marker: { color: 'cyan' }
-    }], {
-        title: 'Skill Distribution',
-        xaxis: { title: 'Skill Rating' },
-        yaxis: { title: 'Number of Matches' },
-        template: 'plotly_dark',
-        height: 300
-    });
+        marker: { color: '#00ffcc' }  // Different color for this plot
+    }], createPlotLayout(
+        'Skill Distribution',
+        { title: 'Skill Rating' },
+        { title: 'Number of Matches' }
+    ));
 
     // Performance metrics over time
     const metricsData = [{
@@ -264,11 +260,9 @@ function updatePlots() {
         mode: 'lines',
         line: { color: '#00ff00' }
     }];
-    Plotly.newPlot('metrics-plot', metricsData, {
-        title: 'Performance Metrics Over Time',
-        template: 'plotly_dark',
-        height: 300
-    });
+    Plotly.newPlot('metrics-plot', metricsData, createPlotLayout(
+        'Performance Metrics Over Time'
+    ));
 
     // Map performance
     const mapStats = {};
@@ -287,13 +281,11 @@ function updatePlots() {
         x: mapKD.map(d => d.map),
         y: mapKD.map(d => d.kd),
         type: 'bar',
-        marker: { color: 'purple' }
-    }], {
-        title: 'K/D Ratio by Map',
-        xaxis: { tickangle: 45 },
-        template: 'plotly_dark',
-        height: 300
-    });
+        marker: { color: '#9966ff' }  // Different color for this plot
+    }], createPlotLayout(
+        'K/D Ratio by Map',
+        { tickangle: 45 }
+    ));
 
     // Headshot ratio over time
     const headshotData = {
@@ -303,12 +295,11 @@ function updatePlots() {
         mode: 'lines',
         line: { color: '#ff4d4d', width: 2 }
     };
-    Plotly.newPlot('headshot-plot', [headshotData], {
-        title: 'Headshot Ratio Over Time',
-        yaxis: { title: 'Headshot Ratio' },
-        template: 'plotly_dark',
-        height: 300
-    });
+    Plotly.newPlot('headshot-plot', [headshotData], createPlotLayout(
+        'Headshot Ratio Over Time',
+        {},
+        { title: 'Headshot Ratio' }
+    ));
 
     // Damage efficiency
     Plotly.newPlot('damage-plot', [{
@@ -317,16 +308,15 @@ function updatePlots() {
         mode: 'markers',
         type: 'scatter',
         marker: {
-            color: filteredData.map(d => d['Match Outcome'].toLowerCase().includes('win') ? '#00ff00' : '#ff0000'),
+            color: filteredData.map(d => d['Match Outcome'].toLowerCase().includes('win') ? 
+                PLOT_COLORS.success : PLOT_COLORS.danger),
             size: 8
         }
-    }], {
-        title: 'Damage Efficiency (Done vs Taken)',
-        xaxis: { title: 'Damage Taken' },
-        yaxis: { title: 'Damage Done' },
-        template: 'plotly_dark',
-        height: 300
-    });
+    }], createPlotLayout(
+        'Damage Efficiency (Done vs Taken)',
+        { title: 'Damage Taken' },
+        { title: 'Damage Done' }
+    ));
 
     // Match outcomes pie chart
     const outcomes = {};
